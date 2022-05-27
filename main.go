@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	dedupe.DeDupe("C:\\Users\\smart\\Photos")
+	dedupe.Run()
 }
