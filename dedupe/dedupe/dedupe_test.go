@@ -3,17 +3,21 @@ package dedupe_test
 import (
 	"bufio"
 	"crypto/rand"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"os"
+	"reflect"
 	"testing"
 
-	"github.com/sander-skjulsvik/tools/dedupe"
+	"github.com/sander-skjulsvik/tools/dedupe/dedupe"
+	"github.com/sander-skjulsvik/tools/dedupe/util"
 	"github.com/sander-skjulsvik/tools/os_spec"
 )
 
 var ROOT string = "tmp_test_dir/"
+var void bool = true
 
 func setup(root string) {
 	os.MkdirAll(root, 0740)
@@ -65,21 +69,83 @@ func TestDedupeFindingDupes(t *testing.T) {
 	}
 	// Create copies
 	for _, c := range d {
-		dedupe.Copy(c[0], c[1])
+		util.Copy(c[0], c[1])
 	}
 
 	dupes := dedupe.Dupes{}
 	files := dedupe.GetFiles(root)
 	dupes.BuildDuplicates(files)
-	duplicates := dupes.GetDupes()
+	duplicates := dupes.GetDuplicates()
 
 	// Correct number of dupes
 	n := 0
 	for _, dupes := range duplicates {
-		n += len(dupes)
+		n += len(dupes) - 1
 	}
 	if n != len(d) {
 		t.Errorf("Wrong number of duplicates. Expected %d, got %d.%s", len(d), n, os_spec.LineBreak)
+	}
+
+	// Correctdupe: Calc in exp
+
+	// calculated maps
+	calculated := [len(d)]map[string]bool{}
+	i := 0
+	for _, d := range duplicates {
+		calculated[i] = make(map[string]bool)
+		for _, f := range d {
+			calculated[i][f.Path] = true
+		}
+		i++
+	}
+
+	exp := [len(d)]map[string]bool{
+		{d[0][0]: true, d[0][1]: true},
+		{d[1][0]: true, d[1][1]: true},
+		{d[2][0]: true, d[2][1]: true, d[3][1]: true},
+	}
+	for _, c := range calculated {
+		x := false
+		for _, e := range exp {
+			if reflect.DeepEqual(c, e) {
+				x = true
+				break
+			}
+		}
+		if x == false {
+			cJson, err := json.Marshal(c)
+			if err != nil {
+				fmt.Println("Unable to marshal calculated to json")
+			}
+			eJson, err := json.Marshal(exp)
+			if err != nil {
+				fmt.Println("Unable to marshal expected to json")
+			}
+			t.Errorf("Could not find calculated %s, in expected %s%s", cJson, eJson, os_spec.LineBreak)
+		}
+	}
+
+	// Correctdupe: Exp in calc
+
+	for _, e := range exp {
+		x := false
+		for _, c := range calculated {
+			if reflect.DeepEqual(c, e) {
+				x = true
+				break
+			}
+		}
+		if x == false {
+			cJson, err := json.Marshal(calculated)
+			if err != nil {
+				fmt.Println("Unable to marshal calculated to json")
+			}
+			eJson, err := json.Marshal(e)
+			if err != nil {
+				fmt.Println("Unable to marshal expected to json")
+			}
+			t.Errorf("Could not find expected %s, in calculated %s%s", cJson, eJson, os_spec.LineBreak)
+		}
 	}
 
 	cleanup(root)

@@ -19,20 +19,20 @@ type File struct {
 }
 
 type Dupes struct {
-	m map[string][]*File
+	M map[string][]*File
 }
 
 func (d *Dupes) AddFile(file File) {
 	// If Md5 does not exist, make list
-	if _, ok := d.m[file.Md5]; !ok {
-		d.m[file.Md5] = []*File{}
+	if _, ok := d.M[file.Md5]; !ok {
+		d.M[file.Md5] = []*File{}
 	}
 	// Add file to list
-	d.m[file.Md5] = append(d.m[file.Md5], &file)
+	d.M[file.Md5] = append(d.M[file.Md5], &file)
 }
 
 func (d *Dupes) PrintDuplicates() {
-	for md5, files := range d.GetDupes() {
+	for md5, files := range d.GetDuplicates() {
 		fmt.Printf("%s: ", md5)
 		for _, file := range files {
 			//fmt.Printf("    %d: %s%s", i, file.Path, os_spec.LineBreak)
@@ -43,15 +43,15 @@ func (d *Dupes) PrintDuplicates() {
 }
 
 func (d *Dupes) BuildDuplicates(files []File) {
-	d.m = make(map[string][]*File)
+	d.M = make(map[string][]*File)
 	for _, file := range files {
 		d.AddFile(file)
 	}
 }
 
-func (d *Dupes) GetDupes() map[string][]*File {
+func (d *Dupes) GetDuplicates() map[string][]*File {
 	dupes := make(map[string][]*File)
-	for md5, files := range d.m {
+	for md5, files := range d.M {
 		if len(files) <= 1 {
 			continue
 		}
@@ -125,13 +125,9 @@ func DeDupe(path string) {
 
 }
 
-func Run() {
-	root := "tmp_test_dir/"
-	BuildFolderTree(root)
-	// h := HashFile("/home/sander/github.com/sander-skjulsvik/tools/tmp_test_dir/test_dir1/test_file1")
-	// fmt.Println(h)
+func Run(path string) {
 	dupes := Dupes{}
-	files := GetFiles(root)
+	files := GetFiles(path)
 	dupes.BuildDuplicates(files)
 	fmt.Println("Printing duplicates")
 	dupes.PrintDuplicates()
