@@ -32,11 +32,13 @@ func (d *Dupes) AddFile(file File) {
 }
 
 func (d *Dupes) PrintDuplicates() {
-	for _, files := range d.m {
+	for md5, files := range d.GetDupes() {
+		fmt.Printf("%s: ", md5)
 		for _, file := range files {
 			//fmt.Printf("    %d: %s%s", i, file.Path, os_spec.LineBreak)
-			fmt.Printf("md5: %s%s", file.Md5, os_spec.LineBreak)
+			fmt.Printf("%s ", file.Path)
 		}
+		fmt.Println()
 	}
 }
 
@@ -45,6 +47,17 @@ func (d *Dupes) BuildDuplicates(files []File) {
 	for _, file := range files {
 		d.AddFile(file)
 	}
+}
+
+func (d *Dupes) GetDupes() map[string][]*File {
+	dupes := make(map[string][]*File)
+	for md5, files := range d.m {
+		if len(files) <= 1 {
+			continue
+		}
+		dupes[md5] = files
+	}
+	return dupes
 }
 
 func GetFiles(path string) []File {
@@ -94,7 +107,7 @@ func HashFile(path string) string {
 		}
 		h.Write(buff[:nBytestRead])
 		if err == io.EOF {
-			fmt.Println("   EOF")
+			fmt.Println("  EOF")
 			break
 		}
 		fmt.Printf("  Bytes read: %d%s", nBytestRead, os_spec.LineBreak)
@@ -113,14 +126,13 @@ func DeDupe(path string) {
 }
 
 func Run() {
-	// root := "tmp_test_dir/"
-	// BuildFolderTree(root)
-	h := HashFile("/home/sander/github.com/sander-skjulsvik/tools/tmp_test_dir/test_dir1/test_file1")
-	fmt.Println(h)
-
-	// files := GetFiles(root)
-	// dupes := Dupes{}
-	// dupes.BuildDuplicates(files)
-	// fmt.Println("Printing duplicates")
-	// dupes.PrintDuplicates()
+	root := "tmp_test_dir/"
+	BuildFolderTree(root)
+	// h := HashFile("/home/sander/github.com/sander-skjulsvik/tools/tmp_test_dir/test_dir1/test_file1")
+	// fmt.Println(h)
+	dupes := Dupes{}
+	files := GetFiles(root)
+	dupes.BuildDuplicates(files)
+	fmt.Println("Printing duplicates")
+	dupes.PrintDuplicates()
 }
