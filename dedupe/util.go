@@ -12,15 +12,15 @@ import (
 func copy(src string, dst string) {
 	fin, err := os.Open(src)
 	if err != nil {
-		log.Fatalf("Could not open file: %s, err: %s", src, err.Error())
+		log.Fatalf("copy: Could not open file: %s, err: %s", src, err.Error())
 	}
 	fout, err := os.Create(dst)
 	if err != nil {
-		log.Fatalf("Could not create file: %s, err: %s", src, err.Error())
+		log.Fatalf("copy: Could not create file: %s, err: %s", src, err.Error())
 	}
 	_, err = io.Copy(fout, fin)
 	if err != nil {
-		log.Fatalf("Could not copy to file: %s, err: %s", src, err.Error())
+		log.Fatalf("copy: Could not copy to file: %s, err: %s", src, err.Error())
 	}
 
 }
@@ -29,9 +29,16 @@ func BuildFolderTree(root string) {
 	os.MkdirAll(root, 0740)
 	// Setup dirs
 	dirs := []string{
-		"test1/",
-		"test2/test1/",
-		"test2/test2/",
+		"test_dir1/",
+		"test_dir2/",
+		"test_dir2/test_dir21/",
+		"test_dir3/",
+		"test_dir3/test_dir31/",
+		"test_dir3/test_dir32/",
+		"test_dir3/test_dir31/test_dir321/",
+		"test_dir3/test_dir31/test_dir322/",
+		"test_dir3/test_dir32/test_dir321/",
+		"test_dir3/test_dir32/test_dir322/",
 	}
 	for _, dir := range dirs {
 		os.MkdirAll(root+dir, 0740)
@@ -39,21 +46,19 @@ func BuildFolderTree(root string) {
 	// Build unique files
 	for _, dir := range dirs {
 		for i := 1; i <= 3; i++ {
-			path := root + dir + "test" + fmt.Sprint(i)
+			path := root + dir + "test_file" + fmt.Sprint(i)
 			f, err := os.Create(path)
 			if err != nil {
-				log.Fatalf("Could not create file:%s", path)
+				log.Fatalf("Could not create file: %s", path)
 			}
 			w := bufio.NewWriter(f)
-			io.CopyN(w, rand.Reader, 10*1024)
+			io.CopyN(w, rand.Reader, 1024*1024)
 
 		}
 	}
 	// Create copies
-	// - Copy: same dir different name
-	copy(root+"test1/test1", root+"test1/test11")
-	copy(root+"test2/test2", root+"test1/test11")
-	// - Copy: different dir
-	copy(root+"test1/test2", root+"test2/test111")
-	copy(root+"test2/test2", root+"test2/test112")
+	copy(root+"test_dir1/test_file1", root+"test_dir1/test_file_copy1")
+	copy(root+"test_dir2/test_file1", root+"test_dir1/test_file_copy2")
+	copy(root+"test_dir3/test_dir32/test_dir321/test_file1", root+"test_dir1/test_file_copy3")
+	copy(root+"test_dir3/test_dir32/test_dir321/test_file1", root+"test_dir3/test_dir32/test_dir322/test_file_copy1")
 }
