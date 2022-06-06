@@ -1,13 +1,13 @@
 package dedupe
 
 import (
+	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
-
-	"crypto"
 
 	"github.com/sander-skjulsvik/tools/os_spec"
 )
@@ -32,12 +32,10 @@ func (d *Dupes) AddFile(file File) {
 }
 
 func (d *Dupes) PrintDuplicates() {
-	for Md5, files := range d.m {
-		if len(files) > 1 {
-			fmt.Printf("md5: %s%s", Md5, os_spec.LineBreak)
-			for i, file := range files {
-				fmt.Printf("    %d: %s", i, file.Path)
-			}
+	for _, files := range d.m {
+		for _, file := range files {
+			//fmt.Printf("    %d: %s%s", i, file.Path, os_spec.LineBreak)
+			fmt.Printf("md5: %s%s", file.Md5, os_spec.LineBreak)
 		}
 	}
 }
@@ -47,19 +45,6 @@ func (d *Dupes) BuildDuplicates(files []File) {
 	for _, file := range files {
 		d.AddFile(file)
 	}
-}
-
-func GetMD5(text string) string {
-	hash := crypto.MD5.New().Sum([]byte(text))
-	return hex.EncodeToString(hash[:])
-}
-
-func GetFileContent(path string) (string, error) {
-	content, err := os.ReadFile(path)
-	if err != nil {
-		log.Printf("GetFileContent: Cloud not read file: %s, err: %s", path, err.Error())
-	}
-	return string(content), err
 }
 
 func GetFiles(path string) []File {
@@ -74,15 +59,11 @@ func GetFiles(path string) []File {
 		if info.IsDir() {
 			return nil
 		}
-		content, err := GetFileContent(path)
 		log.Printf("(%d) Path: %s %s", i, path, os_spec.LineBreak)
-		if err != nil {
-			return nil
-		}
 		file := File{
 			Name: info.Name(),
 			Path: path,
-			Md5:  GetMD5(content),
+			Md5:  HashFile(path),
 		}
 		files = append(files, file)
 		return nil
@@ -94,21 +75,52 @@ func GetFiles(path string) []File {
 	return files
 }
 
+func HashFile(path string) string {
+	h := md5.New()
+	buff := make([]byte, 1024*1024) // Buffer size 1 mb
+	fmt.Printf("Opening file: %s%s", path, os_spec.LineBreak)
+	fp, err := os.Open(path)
+	if err != nil {
+		log.Fatalf("Culd not read file: %s%s  err: %s%s", path, os_spec.LineBreak, err.Error(), os_spec.LineBreak)
+	}
+	defer func() {
+		_ = fp.Close()
+	}()
+
+	for {
+		nBytestRead, err := fp.Read(buff)
+		if err != nil && err != io.EOF {
+			log.Fatalf("Error reading file: %s%s err: %s%s", path, os_spec.LineBreak, err.Error(), os_spec.LineBreak)
+		}
+		h.Write(buff[:nBytestRead])
+		if err == io.EOF {
+			fmt.Println("   EOF")
+			break
+		}
+		fmt.Printf("  Bytes read: %d%s", nBytestRead, os_spec.LineBreak)
+	}
+	return hex.EncodeToString(h.Sum(nil))
+}
+
 func DeDupe(path string) {
 
 	files := GetFiles(path)
 
 	for _, file := range files {
-		fmt.Printf("File: %s, Md5: %s%s", file.Path, file.Md5, os_spec.LineBreak)
+		fmt.Printf("File: %s, Md5: %s %s", file.Path, file.Md5, os_spec.LineBreak)
 	}
 
 }
 
 func Run() {
-	root := "tmp_test_dir/"
-	BuildFolderTree(root)
-	files := GetFiles(root)
-	dupes := Dupes{}
-	dupes.BuildDuplicates(files)
-	dupes.PrintDuplicates()
+	// root := "tmp_test_dir/"
+	// BuildFolderTree(root)
+	h := HashFile("/home/sander/github.com/sander-skjulsvik/tools/tmp_test_dir/test_dir1/test_file1")
+	fmt.Println(h)
+
+	// files := GetFiles(root)
+	// dupes := Dupes{}
+	// dupes.BuildDuplicates(files)
+	// fmt.Println("Printing duplicates")
+	// dupes.PrintDuplicates()
 }
