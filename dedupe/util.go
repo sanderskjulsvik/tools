@@ -9,18 +9,18 @@ import (
 	"os"
 )
 
-func copy(src string, dst string) {
+func Copy(src string, dst string) {
 	fin, err := os.Open(src)
 	if err != nil {
-		log.Fatalf("copy: Could not open file: %s, err: %s", src, err.Error())
+		log.Fatalf("Copy: Could not open file: %s, err: %s", src, err.Error())
 	}
 	fout, err := os.Create(dst)
 	if err != nil {
-		log.Fatalf("copy: Could not create file: %s, err: %s", src, err.Error())
+		log.Fatalf("Copy: Could not create file: %s, err: %s", src, err.Error())
 	}
 	_, err = io.Copy(fout, fin)
 	if err != nil {
-		log.Fatalf("copy: Could not copy to file: %s, err: %s", src, err.Error())
+		log.Fatalf("Copy: Could not Copy to file: %s, err: %s", src, err.Error())
 	}
 
 }
@@ -52,13 +52,13 @@ func BuildFolderTree(root string) {
 				log.Fatalf("Could not create file: %s", path)
 			}
 			w := bufio.NewWriter(f)
-			io.CopyN(w, rand.Reader, 1024*1024)
+			io.CopyN(w, rand.Reader, 1024*1024+1)
 
 		}
 	}
 	// Create copies
-	copy(root+"test_dir1/test_file1", root+"test_dir1/test_file_copy1")
-	copy(root+"test_dir2/test_file1", root+"test_dir1/test_file_copy2")
-	copy(root+"test_dir3/test_dir32/test_dir321/test_file1", root+"test_dir1/test_file_copy3")
-	copy(root+"test_dir3/test_dir32/test_dir321/test_file1", root+"test_dir3/test_dir32/test_dir322/test_file_copy1")
+	Copy(root+"test_dir1/test_file1", root+"test_dir1/test_file_copy1")
+	Copy(root+"test_dir2/test_file1", root+"test_dir1/test_file_copy2")
+	Copy(root+"test_dir3/test_dir32/test_dir321/test_file1", root+"test_dir1/test_file_copy3")
+	Copy(root+"test_dir3/test_dir32/test_dir321/test_file1", root+"test_dir3/test_dir32/test_dir322/test_file_copy1")
 }
