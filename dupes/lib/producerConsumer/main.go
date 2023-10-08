@@ -1,45 +1,16 @@
 package dupes
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"flag"
 	"fmt"
-	"io"
 	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
 	"sync"
+
+	"github.com/sander-skjulsvik/tools/dupes/lib/common"
 )
-
-type Dupe struct {
-	hash  string
-	Paths []*string
-}
-
-type File struct {
-	path string
-}
-
-func hashString(b []byte) string {
-	return hex.EncodeToString(b)
-}
-
-func hashFile(path string) (string, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return "", fmt.Errorf("Failed to open: %s: %w", path, err)
-	}
-	defer f.Close()
-
-	h := sha256.New()
-	if _, err := io.Copy(h, f); err != nil {
-		return "", fmt.Errorf("Failed to hash: %s: %w", path, err)
-	}
-
-	return hashString(h.Sum(nil)), nil
-}
 
 func visit(path string, f os.FileInfo, err error) (string, error) {
 	if !f.Mode().IsRegular() {
@@ -48,7 +19,7 @@ func visit(path string, f os.FileInfo, err error) (string, error) {
 	return path, nil
 }
 
-func walker(root string, files chan<- string) {
+func directoryWalker(root string, files chan<- common.File) {
 	filepath.Walk(root, func(path string, info fs.FileInfo, err error) error {
 		_, err = visit(path, info, err)
 		if err != nil {
@@ -66,9 +37,10 @@ func processer(dupes sync.Map, files <-chan string) {
 func main() {
 	flag.Parse()
 	src := flag.Arg(0)
-	var files chan string
-	walker(src, files)
+	var files chan common.File
+	directoryWalker(src, files)
 	processer(files)
+	storer(files)
 
 	if d, ok := dupes[hash]; !ok {
 		// If file hash has not been found yet
