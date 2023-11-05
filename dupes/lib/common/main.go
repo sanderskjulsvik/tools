@@ -22,7 +22,18 @@ type Dupes struct {
 	D map[string]*Dupe
 }
 
-func (dupes *Dupes) Append(path, hash string) *Dupes {
+func (dupes Dupes) New() Dupes {
+	dupes = Dupes{}
+	dupes.D = make(map[string]*Dupe)
+	return dupes
+}
+
+func (dupes *Dupes) Append(path string) (*Dupes, error) {
+	hash, err := HashFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("unable append file: %w", err)
+	}
+
 	if d, ok := dupes.D[hash]; !ok {
 		// If file hash has not been found yet
 		dupes.D[hash] = &Dupe{
@@ -32,7 +43,7 @@ func (dupes *Dupes) Append(path, hash string) *Dupes {
 	} else {
 		_ = append(d.Paths, &path)
 	}
-	return dupes
+	return dupes, nil
 }
 
 func (dupes *Dupes) Print() {
