@@ -18,6 +18,10 @@ func main() {
 	flag.StringVar(&path, "path", "", "File path")
 	flag.StringVar(&path, "p", "", "File path")
 	flag.StringVar(&path, "", "", "File path")
+
+	// Parse the input
+	flag.Parse()
+
 	// Check if the method flag is provided
 	if method == "" {
 		method = "single"
@@ -38,7 +42,6 @@ func main() {
 	fmt.Printf("Method: %s\n", method)
 	fmt.Printf("Path: %s\n", path)
 
-	// flag.Parse()
 	// src := flag.Arg(0)
 	// singlethread.Run(src)
 }
