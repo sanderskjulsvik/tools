@@ -1,4 +1,4 @@
-package singlethread
+package singleThread
 
 import (
 	"io/fs"

@@ -4,6 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"os"
+
+	producerConsumer "github.com/sander-skjulsvik/tools/dupes/lib/producerConsumer"
+	singleThread "github.com/sander-skjulsvik/tools/dupes/lib/singleThread"
 )
 
 func main() {
@@ -42,6 +45,10 @@ func main() {
 	fmt.Printf("Method: %s\n", method)
 	fmt.Printf("Path: %s\n", path)
 
-	// src := flag.Arg(0)
-	// singlethread.Run(src)
+	switch {
+	case method == "single":
+		singleThread.Run(path)
+	case method == "producerConsumer":
+		producerConsumer.Run(path)
+	}
 }

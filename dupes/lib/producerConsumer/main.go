@@ -1,4 +1,4 @@
-package dupes
+package producerConsumer
 
 import (
 	"fmt"
