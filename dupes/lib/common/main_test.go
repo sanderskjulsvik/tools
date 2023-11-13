@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	common "github.com/sander-skjulsvik/tools/dupes/lib/common"
 )
 
 var TEST_DIR string = "test_dir/"
@@ -53,7 +55,6 @@ func TestAppend(t *testing.T) {
 	// dupes := common.Dupes.New(common.Dupes{})
 	defer cleanUp()
 	setup()
-
-	// dupes.Append()
+	common.Dupes.New(common.Dupes{})
 
 }
