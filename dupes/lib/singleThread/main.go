@@ -1,7 +1,6 @@
-package singlethread
+package singleThread
 
 import (
-	"fmt"
 	"io/fs"
 	"log"
 	"path/filepath"
@@ -19,12 +18,11 @@ func Run(src string) {
 		if !isFile {
 			return nil
 		}
-		hash, err := common.HashFile(path)
+
+		dupes, err = dupes.Append(path)
 		if err != nil {
-			fmt.Printf("File at %s is not hashable", path)
-			return err
+			return nil
 		}
-		dupes = dupes.Append(path, hash)
 
 		return nil
 	})
