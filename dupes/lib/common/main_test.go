@@ -18,10 +18,10 @@ type TestFile struct {
 }
 
 var FILES []TestFile = []TestFile{
-	{"a93a1ffa-2674-436d-ad10-94dde9c697ea", []string{"1", "a/1", "a/a/1"}, "ad347adf1c9f742644a7f0906e153f4f1609dac98081f8ff8d3aeb33a34c9aa9  -"},
-	{"49c2b6ec-4832-494e-a1d0-83670523fe32", []string{"2", "a/2", "b/a/2"}, "a24f2b5877ea7b1d6c3b9b0d30f317446e321d62fd4d24ca87a326663d3f7936  -"},
-	{"6a6ec3af-a3c0-4005-8dfb-6cf9ef0416be", []string{"b/b/1"}, "858df248eff2912257bb67f9a88b926a6715523614fbd4e58dd3ad8e81f16cb6  -"},
-	{"a3ea3e1f-9eea-4b25-8ec7-bda1dda06731", []string{"b/a/b/a/1", "a/3"}, "9492cbb32af35939f7873464e328b4544fe1c5451e128a636a26eefbd9b23821  -"},
+	{"a93a1ffa-2674-436d-ad10-94dde9c697ea", []string{"1", "a/1", "a/a/1"}, "ad347adf1c9f742644a7f0906e153f4f1609dac98081f8ff8d3aeb33a34c9aa9"},
+	{"49c2b6ec-4832-494e-a1d0-83670523fe32", []string{"2", "a/2", "b/a/2"}, "a24f2b5877ea7b1d6c3b9b0d30f317446e321d62fd4d24ca87a326663d3f7936"},
+	{"6a6ec3af-a3c0-4005-8dfb-6cf9ef0416be", []string{"b/b/1"}, "858df248eff2912257bb67f9a88b926a6715523614fbd4e58dd3ad8e81f16cb6"},
+	{"a3ea3e1f-9eea-4b25-8ec7-bda1dda06731", []string{"b/a/b/a/1", "a/3"}, "9492cbb32af35939f7873464e328b4544fe1c5451e128a636a26eefbd9b23821"},
 }
 
 func check(e error) {
@@ -51,7 +51,7 @@ func setup() {
 			f, err := os.Create(TEST_DIR + string(path))
 			check(err)
 			defer f.Close()
-			f.WriteString(file.Content)
+			f.WriteString(file.Content + "\n")
 			f.Sync()
 		}
 	}
@@ -91,16 +91,20 @@ func TestAppend(t *testing.T) {
 }
 
 func TestHashFile(t *testing.T) {
-	// defer cleanUp()
+	defer cleanUp()
 	setup()
-	file := FILES[0]
-	hash, err := common.HashFile(TEST_DIR + file.Paths[0])
-	if err != nil {
-		t.Errorf("Failed to hash file, %s, err: %e", TEST_DIR+file.Paths[0], err)
-		t.FailNow()
-	}
-	if hash != file.Hash {
-		t.Errorf("Hash given by hash file is not correct, expected: %s, got: %s, on content: %s, path: %s", file.Hash, hash, file.Content, file.Paths[0])
-	}
 
+	for _, file := range FILES {
+		for _, path := range file.Paths {
+			hash, err := common.HashFile(TEST_DIR + path)
+			if err != nil {
+				t.Errorf("Failed to hash file, %s, err: %e", TEST_DIR+path, err)
+				t.FailNow()
+			}
+			if hash != file.Hash {
+				t.Errorf("Hash given by hash file is not correct, expected: %s, got: %s, on content: %s, path: %s", file.Hash, hash, file.Content, file.Paths[0])
+				t.FailNow()
+			}
+		}
+	}
 }
