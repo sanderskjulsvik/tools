@@ -40,6 +40,13 @@ func processor(filePaths <-chan string) (common.Dupes, error) {
 func presenter(dupes common.Dupes) {
 	dupes.Print()
 }
+func Run() {
+	flag.Parse()
+	src := flag.Arg(0)
+	var files chan common.File
+	directoryWalker(src, files)
+	processer(files)
+	storer(files)
 
 func Run(src string) {
 

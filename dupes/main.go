@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 
 	producerConsumer "github.com/sander-skjulsvik/tools/dupes/lib/producerConsumer"
@@ -22,7 +23,7 @@ func main() {
 	flag.StringVar(&path, "p", "", "File path")
 	flag.StringVar(&path, "", "", "File path")
 
-	// Parse the input
+	// Parse the command-line arguments
 	flag.Parse()
 
 	// Check if the method flag is provided
@@ -50,5 +51,18 @@ func main() {
 		singleThread.Run(path)
 	case method == "producerConsumer":
 		producerConsumer.Run(path)
+}
+
+func Run(path, method string) {
+	// Use a switch statement to handle different cases
+	switch method {
+	case "single":
+		singlethread.Run(path)
+	case "producerConsumer":
+		log.Fatal("producerConsumer not implemented yet")
+		// producerConsumer.Run(path)
+	default:
+		fmt.Println("Invalid method. Allowed values are 'single' and 'producerConsumer'.")
+		os.Exit(1)
 	}
 }
