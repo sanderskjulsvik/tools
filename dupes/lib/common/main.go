@@ -33,7 +33,12 @@ func (dupes *Dupes) Append(path string) (*Dupes, error) {
 	if err != nil {
 		return nil, fmt.Errorf("unable append file: %w", err)
 	}
+	dupes.AppendHashedFile(path, hash)
+	return dupes, nil
+}
 
+// AppendHashedFile
+func (dupes *Dupes) AppendHashedFile(path string, hash string) {
 	if _, ok := dupes.D[hash]; !ok {
 		// If file hash has not been found yet
 		dupes.D[hash] = &Dupe{
@@ -43,7 +48,6 @@ func (dupes *Dupes) Append(path string) (*Dupes, error) {
 	} else {
 		dupes.D[hash].Paths = append(dupes.D[hash].Paths, &path)
 	}
-	return dupes, nil
 }
 
 func (dupes *Dupes) Print() {
