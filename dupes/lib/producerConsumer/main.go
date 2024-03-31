@@ -19,16 +19,28 @@ func getFiles(root string, filePaths chan<- string) {
 	})
 }
 
+func appendFileTreadSafe(dupes *common.Dupes, path string, lock *sync.Mutex) {
+	hash, err := common.HashFile(path)
+	if err != nil {
+		panic(err)
+	}
+	lock.Lock()
+	defer lock.Unlock()
+	dupes.AppendHashedFile(path, hash)
+}
+
 // Consumer
 func ProcessFiles(filePaths <-chan string) common.Dupes {
 	dupes := common.Dupes.New(common.Dupes{})
 	wg := sync.WaitGroup{}
+	dupesWl := sync.Mutex{}
 	for filePath := range filePaths {
 		wg.Add(1)
 		go func() {
-			dupes.Append(filePath)
+			appendFileTreadSafe(&dupes, filePath, &dupesWl)
 			wg.Done()
 		}()
+
 	}
 	wg.Wait()
 	return dupes
@@ -37,11 +49,12 @@ func ProcessFiles(filePaths <-chan string) common.Dupes {
 func ProcessFilesNCunsumers(filePaths <-chan string, numberOfConsumers int) common.Dupes {
 	dupes := common.Dupes.New(common.Dupes{})
 	wg := sync.WaitGroup{}
+	dupesWl := sync.Mutex{}
 	wg.Add(numberOfConsumers)
 	for i := 0; i < numberOfConsumers; i++ {
 		go func() {
 			for filePath := range filePaths {
-				dupes.Append(filePath)
+				appendFileTreadSafe(&dupes, filePath, &dupesWl)
 			}
 			wg.Done()
 		}()
