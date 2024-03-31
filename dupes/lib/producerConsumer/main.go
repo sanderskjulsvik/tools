@@ -4,6 +4,7 @@ import (
 	"flag"
 	"io/fs"
 	"path/filepath"
+	"sync"
 
 	"github.com/sander-skjulsvik/tools/dupes/lib/common"
 )
@@ -21,24 +22,31 @@ func getFiles(root string, filePaths chan<- string) {
 // Consumer
 func ProcessFiles(filePaths <-chan string) common.Dupes {
 	dupes := common.Dupes.New(common.Dupes{})
-
+	wg := sync.WaitGroup{}
 	for filePath := range filePaths {
-		dupes.Append(filePath)
+		wg.Add(1)
+		go func() {
+			dupes.Append(filePath)
+			wg.Done()
+		}()
 	}
-
+	wg.Wait()
 	return dupes
 }
 
 func ProcessFilesNCunsumers(filePaths <-chan string, numberOfConsumers int) common.Dupes {
 	dupes := common.Dupes.New(common.Dupes{})
+	wg := sync.WaitGroup{}
+	wg.Add(numberOfConsumers)
 	for i := 0; i < numberOfConsumers; i++ {
 		go func() {
 			for filePath := range filePaths {
 				dupes.Append(filePath)
 			}
+			wg.Done()
 		}()
 	}
-
+	wg.Wait()
 	return dupes
 }
 
