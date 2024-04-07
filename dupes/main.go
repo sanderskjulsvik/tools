@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 
 	producerConsumer "github.com/sander-skjulsvik/tools/dupes/lib/producerConsumer"
@@ -51,18 +50,5 @@ func main() {
 		singleThread.Run(path)
 	case method == "producerConsumer":
 		producerConsumer.Run(path)
-}
-
-func Run(path, method string) {
-	// Use a switch statement to handle different cases
-	switch method {
-	case "single":
-		singlethread.Run(path)
-	case "producerConsumer":
-		log.Fatal("producerConsumer not implemented yet")
-		// producerConsumer.Run(path)
-	default:
-		fmt.Println("Invalid method. Allowed values are 'single' and 'producerConsumer'.")
-		os.Exit(1)
 	}
 }

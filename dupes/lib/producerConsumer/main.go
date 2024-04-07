@@ -1,7 +1,6 @@
 package producerConsumer
 
 import (
-	"flag"
 	"io/fs"
 	"path/filepath"
 	"sync"
@@ -64,38 +63,12 @@ func ProcessFilesNCunsumers(filePaths <-chan string, numberOfConsumers int) comm
 func presenter(dupes common.Dupes) {
 	dupes.Print()
 }
-func Run() {
-	flag.Parse()
-	src := flag.Arg(0)
-	var files chan common.File
-	directoryWalker(src, files)
-	processer(files)
-	storer(files)
 
-func Run() {
-	flag.Parse()
-	src := flag.Arg(0)
+func Run(path string) common.Dupes {
 	filePaths := make(chan string)
-	go getFiles(src, filePaths)
+	go getFiles(path, filePaths)
 	dupes := ProcessFiles(filePaths)
 	presenter(dupes)
 	// storer(files)
+	return dupes
 }
-
-// func Run(src string) {
-
-// 	// Find the files
-// 	var filePaths chan string
-// 	directoryWalker(src, filePaths)
-
-// 	// Process files
-// 	dupes, err := processor(filePaths)
-// 	if err != nil {
-// 		fmt.Printf("Failed to process directory: %s\n", err)
-// 		panic("Stopping because off processing dir error")
-// 	}
-
-// 	// Present the result (?)
-// 	presenter(dupes)
-
-// }
