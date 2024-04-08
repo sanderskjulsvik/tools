@@ -45,6 +45,10 @@ func main() {
 	fmt.Printf("Method: %s\n", method)
 	fmt.Printf("Path: %s\n", path)
 
+	Run(path, method)
+}
+
+func Run(path, method string) {
 	switch {
 	case method == "single":
 		singleThread.Run(path)

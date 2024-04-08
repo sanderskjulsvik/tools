@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	main "github.com/sander-skjulsvik/tools/dupes"
 )
 
 func TestMain(m *testing.M) {
@@ -27,7 +29,7 @@ func TestMain(m *testing.M) {
 	generateNestedStructure(baseDir, numLevels, numFoldersPerLevel, numFilesPerFolder, content)
 
 	fmt.Println("Nested folder structure generated successfully.")
-	Run()
+	main.Run(baseDir, "single")
 }
 
 func generateNestedStructure(dirPath string, levels, foldersPerLevel, filesPerFolder int, content string) {
