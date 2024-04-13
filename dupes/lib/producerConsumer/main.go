@@ -8,6 +8,7 @@ import (
 	"github.com/sander-skjulsvik/tools/dupes/lib/common"
 )
 
+// Works like a generator, yelding all regular files
 func getFiles(root string, filePaths chan<- string) {
 	defer close(filePaths)
 
