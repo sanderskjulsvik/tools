@@ -9,6 +9,8 @@ import (
 )
 
 func getFiles(root string, filePaths chan<- string) {
+	defer close(filePaths)
+
 	filepath.Walk(root, func(path string, info fs.FileInfo, err error) error {
 		// If regular file, send it to the channel
 		if info.Mode().IsRegular() {
