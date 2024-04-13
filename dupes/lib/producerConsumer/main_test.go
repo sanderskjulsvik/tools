@@ -231,3 +231,117 @@ func TestAppendFileTreadSafe(t *testing.T) {
 		}
 	}
 }
+
+func TestProcessFiles(t *testing.T) {
+	baseDir := "test_process_files/"
+	defer os.RemoveAll(filepath.Clean(baseDir))
+
+	// Process 1 file
+	{
+		workDir := baseDir + "one_file/"
+		os.MkdirAll(filepath.Clean(workDir), 0755)
+		path := workDir + "single_file"
+
+		common.CreateFile(path, "I am a single file")
+		expectedHash := "1be3d7cfb6df7ff4ed6235a70603dc3ee8fa636a5e44a5c2ea8ffbcd38b41bd0"
+
+		filePaths := make(chan string)
+		wg := sync.WaitGroup{}
+		var d *common.Dupes
+		go func() {
+			d = ProcessFiles(filePaths)
+			wg.Add(1)
+		}()
+		filePaths <- filepath.Clean(path)
+		close(filePaths)
+		wg.Wait()
+
+		if len(d.D) != 1 {
+			t.Errorf("TestProcessFiles: process 1 file, did not get 1 hash, got %d", len(d.D))
+		}
+		for key, val := range d.D {
+			if key != expectedHash {
+				t.Errorf("TestProcessFiles: process 1 file, got wrong hash, expected: %s, got: %s", expectedHash, key)
+			}
+			if len(val.Paths) != 1 {
+				t.Errorf("TestProcessFiles: process 1 file, hash got more than one path: %s", n, val.Paths)
+			}
+		}
+	}
+
+	// Process mix of nested files
+	{
+		type File struct {
+			Path    string
+			Content string
+			Hash    string
+		}
+		workDir := baseDir + "nested_files/"
+		os.MkdirAll(filepath.Clean(workDir), 0755)
+
+		os.MkdirAll(workDir+filepath.Clean("/folder/folder/"), 0755)
+		expectedFilePaths := []File{{
+			Path:    workDir + "nesting_file_name3123",
+			Content: "I am unique",
+		}, {
+			Path:    workDir + "folder/" + "nesting_file_name",
+			Content: "I am not unique",
+		}, {
+			Path:    workDir + "folder/" + "folder/" + "nesting_file_name",
+			Content: "I am not unique",
+		}, {
+			Path:    workDir + "folder/" + "folder/" + "nesting_file_name_1",
+			Content: "I am not unique",
+		}, {
+			Path:    workDir + "folder/" + "nesting_file_name_2",
+			Content: "I am not unique",
+		}}
+		for _, file := range expectedFilePaths {
+			common.CreateFile(file.Path, file.Content)
+		}
+
+		filePaths := make(chan string)
+		wg := sync.WaitGroup{}
+		var d *common.Dupes
+		go func() {
+			d = ProcessFiles(filePaths)
+			wg.Add(1)
+		}()
+		wgAdd := sync.WaitGroup{}
+		wg.Add(len(expectedFilePaths))
+		for _, f := range expectedFilePaths {
+			go func() {
+				filePaths <- filepath.Clean(f.Path)
+				wg.Done()
+			}()
+		}
+		wgAdd.Wait()
+		close(filePaths)
+		wg.Wait()
+
+		if len(d.D) != 2 {
+			t.Errorf("TestProcessFiles: process nested files, expected 2 unique files, got: %d", len(d.D))
+		}
+		for hash, val := range d.D {
+			if len(val.Paths) == 1 {
+				if hash != "" {
+					t.Errorf("TestProcessFiles: processing nested files, unique file hash wrog hash: file: %s, expected hash %s, got: %s",
+						*val.Paths[0], "", hash,
+					)
+				}
+
+			} else if len(val.Paths) == 4 {
+				if hash != "" {
+					t.Errorf("TestProcessFiles: processing nested files, not unique file hash wrog hash: file: %s, expected hash %s, got: %s",
+						*val.Paths[0], "", hash,
+					)
+				}
+				if len(val.Paths) != 4 {
+					t.Errorf("TestProcessFiles: processing nested files, not unique file got wrong number of paths, expected: %s, got: %s", 4, len(val.Paths))
+				}
+			} else {
+
+			}
+		}
+	}
+}
