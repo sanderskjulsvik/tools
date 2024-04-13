@@ -342,7 +342,7 @@ func TestProcessFiles(t *testing.T) {
 					t.Errorf("TestProcessFiles: processing nested files, not unique file got wrong number of paths, expected: %d, got: %d", 4, len(val.Paths))
 				}
 			} else {
-
+				t.Errorf("TestProcessFiles: processing nested files, got the wrong duber of dupes, expected a dupe with 1 path and a dupe with 4 paths")
 			}
 		}
 	}
@@ -458,7 +458,7 @@ func TestProcessFilesNConsumers(t *testing.T) {
 					t.Errorf("TestProcessFiles: processing nested files, not unique file got wrong number of paths, expected: %d, got: %d", 4, len(val.Paths))
 				}
 			} else {
-
+				t.Errorf("TestProcessFiles: processing nested files, got the wrong duber of dupes, expected a dupe with 1 path and a dupe with 4 paths")
 			}
 		}
 	}
