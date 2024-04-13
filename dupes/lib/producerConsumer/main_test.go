@@ -248,9 +248,10 @@ func TestProcessFiles(t *testing.T) {
 		filePaths := make(chan string)
 		wg := sync.WaitGroup{}
 		var d *common.Dupes
+		wg.Add(1)
 		go func() {
 			d = ProcessFiles(filePaths)
-			wg.Add(1)
+			wg.Done()
 		}()
 		filePaths <- filepath.Clean(path)
 		close(filePaths)
@@ -264,7 +265,7 @@ func TestProcessFiles(t *testing.T) {
 				t.Errorf("TestProcessFiles: process 1 file, got wrong hash, expected: %s, got: %s", expectedHash, key)
 			}
 			if len(val.Paths) != 1 {
-				t.Errorf("TestProcessFiles: process 1 file, hash got more than one path: %s", n, val.Paths)
+				t.Errorf("TestProcessFiles: process 1 file, hash got more than one path: %d", len(val.Paths))
 			}
 		}
 	}
@@ -303,16 +304,17 @@ func TestProcessFiles(t *testing.T) {
 		filePaths := make(chan string)
 		wg := sync.WaitGroup{}
 		var d *common.Dupes
+		wg.Add(1)
 		go func() {
 			d = ProcessFiles(filePaths)
-			wg.Add(1)
+			wg.Done()
 		}()
 		wgAdd := sync.WaitGroup{}
-		wg.Add(len(expectedFilePaths))
+		wgAdd.Add(len(expectedFilePaths))
 		for _, f := range expectedFilePaths {
 			go func() {
 				filePaths <- filepath.Clean(f.Path)
-				wg.Done()
+				wgAdd.Done()
 			}()
 		}
 		wgAdd.Wait()
@@ -324,20 +326,20 @@ func TestProcessFiles(t *testing.T) {
 		}
 		for hash, val := range d.D {
 			if len(val.Paths) == 1 {
-				if hash != "" {
+				if hash != "e83ada05c293a82c303c0348fb1003d886cb64578e60cc50971d86538b7c67fd" {
 					t.Errorf("TestProcessFiles: processing nested files, unique file hash wrog hash: file: %s, expected hash %s, got: %s",
-						*val.Paths[0], "", hash,
+						*val.Paths[0], "e83ada05c293a82c303c0348fb1003d886cb64578e60cc50971d86538b7c67fd", hash,
 					)
 				}
 
 			} else if len(val.Paths) == 4 {
-				if hash != "" {
+				if hash != "5789c6f31463a1cfc7fc5f2b1a593b2970b73f203efbd235d6d3b5a6d93c425f" {
 					t.Errorf("TestProcessFiles: processing nested files, not unique file hash wrog hash: file: %s, expected hash %s, got: %s",
-						*val.Paths[0], "", hash,
+						*val.Paths[0], "5789c6f31463a1cfc7fc5f2b1a593b2970b73f203efbd235d6d3b5a6d93c425f", hash,
 					)
 				}
 				if len(val.Paths) != 4 {
-					t.Errorf("TestProcessFiles: processing nested files, not unique file got wrong number of paths, expected: %s, got: %s", 4, len(val.Paths))
+					t.Errorf("TestProcessFiles: processing nested files, not unique file got wrong number of paths, expected: %d, got: %d", 4, len(val.Paths))
 				}
 			} else {
 
