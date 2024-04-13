@@ -9,32 +9,31 @@ import (
 )
 
 func TestMain(m *testing.T) {
-	common.TestRun(common.DEFAULT_TEST_DIR+"test_main_producer_consumer", Run)
+	common.TestRun("test_main_producer_consumer", Run)
 }
 
 func TestGetFiles(t *testing.T) {
-	baseDir := common.DEFAULT_TEST_DIR + "test_get_files/"
+	baseDir := "test_get_files/"
 	defer os.RemoveAll(baseDir)
-	// Setup
 
 	// Nesting
 	{
-		workDir := baseDir + "nesting/"
+		workDir := baseDir + "test_nesting/"
 		defer os.RemoveAll(workDir)
 		os.MkdirAll(workDir+"folder/folder/", 0755)
 		expectedFilePaths := []string{
-			"nesting_file_name",
-			"folder/" + "nesting_file_name",
-			"folder/" + "folder/" + "nesting_file_name",
+			workDir + "nesting_file_name",
+			workDir + "folder/" + "nesting_file_name",
+			workDir + "folder/" + "folder/" + "nesting_file_name",
 		}
 		for _, file := range expectedFilePaths {
 			common.CreateFile(workDir+file, "nesting_file_content")
 		}
-		common.CreateFile(workDir+"nesting_file_name", "nesting_file_content")
-		common.CreateFile(workDir+"folder/"+"nesting_file_name", "nesting_file_content")
-		common.CreateFile(workDir+"folder/"+"folder/"+"nesting_file_name", "nesting_file_content")
+		common.CreateFile("nesting_file_name", "nesting_file_content")
+		common.CreateFile("folder/"+"nesting_file_name", "nesting_file_content")
+		common.CreateFile("folder/"+"folder/"+"nesting_file_name", "nesting_file_content")
 		calculatedFilePaths := make(chan string)
-		getFiles(workDir, calculatedFilePaths)
+		go getFiles(workDir, calculatedFilePaths)
 		ind := 0
 		for calculatedPath := range calculatedFilePaths {
 			if !slices.Contains(expectedFilePaths, calculatedPath) {
@@ -52,14 +51,14 @@ func TestGetFiles(t *testing.T) {
 
 	// Empty file
 	{
-		workDir := baseDir + "empty_file/"
+		workDir := baseDir + "test_empty_file/"
 		defer os.RemoveAll(workDir)
 		os.MkdirAll(workDir, 0755)
 		common.CreateEmptyFile(workDir + "empty_file")
 		common.CreateFile(workDir+"not_empty_file", "not_empty_file")
 
 		calculatedFilePaths := make(chan string)
-		getFiles(workDir, calculatedFilePaths)
+		go getFiles(workDir, calculatedFilePaths)
 		ind := 0
 		for calculatedPath := range calculatedFilePaths {
 			if calculatedPath != workDir+"not_empty_file" {
@@ -79,14 +78,14 @@ func TestGetFiles(t *testing.T) {
 
 	// Symlink
 	{
-		workDir := baseDir + "empty_file/"
+		workDir := baseDir + "test_symlink_file/"
 		defer os.RemoveAll(workDir)
 		os.MkdirAll(workDir, 0755)
 		common.CreateEmptyFile(workDir + "source_file")
 		os.Symlink(workDir+"source_file", workDir+"destination_file")
 
 		calculatedFilePaths := make(chan string)
-		getFiles(workDir, calculatedFilePaths)
+		go getFiles(workDir, calculatedFilePaths)
 		ind := 0
 		for calculatedPath := range calculatedFilePaths {
 			if calculatedPath == workDir+"destination_file" {

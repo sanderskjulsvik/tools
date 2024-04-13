@@ -7,6 +7,6 @@ import (
 	"github.com/sander-skjulsvik/tools/dupes/lib/singleThread"
 )
 
-func TestMain(m *testing.M) {
-	common.TestRun(common.DEFAULT_TEST_DIR, singleThread.Run)
+func TestMain(m *testing.T) {
+	common.TestRun("test_main_single_thread", singleThread.Run)
 }

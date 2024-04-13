@@ -7,8 +7,6 @@ import (
 	"strings"
 )
 
-var DEFAULT_TEST_DIR string = "test_dir/"
-
 func TestRun(path string, run Run) {
 	var (
 		baseDir            = path
