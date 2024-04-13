@@ -73,3 +73,18 @@ func GenerateNestedStructure(dirPath string, levels, foldersPerLevel, filesPerFo
 		GenerateNestedStructure(folderPath, levels-1, foldersPerLevel, filesPerFolder, content)
 	}
 }
+
+func check(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
+
+func CreateEmptyFile(name string) {
+	d := []byte("")
+	check(os.WriteFile(name, d, 0644))
+}
+
+func CreateFile(path, content string) {
+	check(os.WriteFile(path, []byte(content), 0644))
+}
