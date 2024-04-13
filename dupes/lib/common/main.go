@@ -8,6 +8,9 @@ import (
 	"os"
 )
 
+// Function to run to find dupes.
+type Run func(string) *Dupes
+
 type Dupe struct {
 	Hash  string
 	Paths []*string

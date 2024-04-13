@@ -3,13 +3,10 @@ package singleThread_test
 import (
 	"testing"
 
-	"github.com/sander-skjulsvik/tools/dupes/lib/common"
+	common "github.com/sander-skjulsvik/tools/dupes/lib/common"
+	"github.com/sander-skjulsvik/tools/dupes/lib/singleThread"
 )
 
-var TEST_DIR string = "test_dir/"
-
-func TestRun(t *testing.T) {
-	defer common.CleanUp(TEST_DIR)
-	common.Setup(TEST_DIR)
-
+func TestMain(m *testing.M) {
+	common.TestRun(common.DEFAULT_TEST_DIR, singleThread.Run)
 }

@@ -28,7 +28,7 @@ func appendFileTreadSafe(dupes *common.Dupes, path string, lock *sync.Mutex) {
 	dupes.AppendHashedFile(path, hash)
 }
 
-func ProcessFiles(filePaths <-chan string) common.Dupes {
+func ProcessFiles(filePaths <-chan string) *common.Dupes {
 	dupes := common.Dupes.New(common.Dupes{})
 	wg := sync.WaitGroup{}
 	dupesWl := sync.Mutex{}
@@ -40,7 +40,7 @@ func ProcessFiles(filePaths <-chan string) common.Dupes {
 		}()
 	}
 	wg.Wait()
-	return dupes
+	return &dupes
 }
 
 func ProcessFilesNCunsumers(filePaths <-chan string, numberOfConsumers int) common.Dupes {
@@ -64,11 +64,11 @@ func presenter(dupes common.Dupes) {
 	dupes.Print()
 }
 
-func Run(path string) common.Dupes {
+func Run(path string) *common.Dupes {
 	filePaths := make(chan string)
 	go getFiles(path, filePaths)
 	dupes := ProcessFiles(filePaths)
-	presenter(dupes)
+	presenter(*dupes)
 	// storer(files)
 	return dupes
 }
