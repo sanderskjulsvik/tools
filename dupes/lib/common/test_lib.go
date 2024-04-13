@@ -19,6 +19,7 @@ func TestRun(path string, run Run) {
 	)
 
 	// Create the base directory if it doesn't exist
+	defer os.RemoveAll(baseDir)
 	if err := os.MkdirAll(baseDir, os.ModePerm); err != nil {
 		fmt.Println("Error creating base directory:", err)
 		return
