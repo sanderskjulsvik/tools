@@ -46,7 +46,7 @@ func ProcessFiles(filePaths <-chan string) *common.Dupes {
 	return &dupes
 }
 
-func ProcessFilesNCunsumers(filePaths <-chan string, numberOfConsumers int) common.Dupes {
+func ProcessFilesNCunsumers(filePaths <-chan string, numberOfConsumers int) *common.Dupes {
 	dupes := common.Dupes.New(common.Dupes{})
 	wg := sync.WaitGroup{}
 	dupesWl := sync.Mutex{}
@@ -60,7 +60,7 @@ func ProcessFilesNCunsumers(filePaths <-chan string, numberOfConsumers int) comm
 		}()
 	}
 	wg.Wait()
-	return dupes
+	return &dupes
 }
 
 func presenter(dupes common.Dupes) {
