@@ -79,11 +79,11 @@ func check(e error) {
 	}
 }
 
-func CreateEmptyFile(name string) {
+func CreateEmptyFile(path string) {
 	d := []byte("")
-	check(os.WriteFile(name, d, 0644))
+	check(os.WriteFile(filepath.Clean(path), d, 0644))
 }
 
 func CreateFile(path, content string) {
-	check(os.WriteFile(path, []byte(content), 0644))
+	check(os.WriteFile(filepath.Clean(path), []byte(content), 0644))
 }
