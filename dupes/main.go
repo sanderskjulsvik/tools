@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	producerConsumer "github.com/sander-skjulsvik/tools/dupes/lib/producerConsumer"
 	singleThread "github.com/sander-skjulsvik/tools/dupes/lib/singleThread"
@@ -11,24 +12,12 @@ import (
 
 func main() {
 
-	var (
-		method string
-		path   string
-	)
-
-	flag.StringVar(&method, "m", "", "Method (single or producerConsumer)")
-	flag.StringVar(&method, "method", "", "Method (single or producerConsumer)")
-	flag.StringVar(&path, "path", "", "File path")
-	flag.StringVar(&path, "p", "", "File path")
-	flag.StringVar(&path, "", "", "File path")
+	method := strings.ToLower(*flag.String("method", "single", "Method (single or producerConsumer)"))
+	path := *flag.String("path", ".", "File path")
+	presentOnlyDupes := *flag.Bool("onlyDupes", true, "Only present dupes")
 
 	// Parse the command-line arguments
 	flag.Parse()
-
-	// Check if the method flag is provided
-	if method == "" {
-		method = "single"
-	}
 
 	// Check if the method is one of the allowed values
 	if method != "single" && method != "producerConsumer" {
@@ -36,23 +25,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Check if the path flag is provided
-	if path == "" {
-		fmt.Println("Path is required. Please provide a path using -path, -p or flag or without a flag.")
-		os.Exit(1)
-	}
 	// At this point, you have valid values for method and path
 	fmt.Printf("Method: %s\n", method)
 	fmt.Printf("Path: %s\n", path)
+	fmt.Printf("PresentOnlyDupes: %t\n", presentOnlyDupes)
 
-	Run(path, method)
+	Run(path, method, presentOnlyDupes)
 }
 
-func Run(path, method string) {
+func Run(path, method string, presentOnlyDupes bool) {
 	switch {
 	case method == "single":
-		singleThread.Run(path)
-	case method == "producerConsumer":
-		producerConsumer.Run(path)
+		singleThread.Run(path, presentOnlyDupes)
+	case method == "producerconsumer":
+		producerConsumer.Run(path, presentOnlyDupes)
 	}
 }

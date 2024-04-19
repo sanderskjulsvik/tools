@@ -9,7 +9,7 @@ import (
 )
 
 // Function to run to find dupes.
-type Run func(string) *Dupes
+type Run func(string, bool) *Dupes
 
 type Dupe struct {
 	Hash  string
@@ -60,6 +60,26 @@ func (dupes *Dupes) Print() {
 			fmt.Printf("    %s \n", *path)
 		}
 		fmt.Println("")
+	}
+}
+
+func (dupes *Dupes) PrintOnlyDupes() {
+	for _, dupe := range dupes.D {
+		if len(dupe.Paths) > 1 {
+			fmt.Printf("sha256:%s \n", dupe.Hash)
+			for _, path := range dupe.Paths {
+				fmt.Printf("    %s \n", *path)
+			}
+			fmt.Println("")
+		}
+	}
+}
+
+func (dupes *Dupes) Present(onlyDupes bool) {
+	if onlyDupes {
+		dupes.PrintOnlyDupes()
+	} else {
+		dupes.Print()
 	}
 }
 

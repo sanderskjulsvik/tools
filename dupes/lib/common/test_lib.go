@@ -27,7 +27,7 @@ func TestRun(path string, run Run) {
 	GenerateNestedStructure(baseDir, numLevels, numFoldersPerLevel, numFilesPerFolder, content)
 
 	fmt.Println("Nested folder structure generated successfully.")
-	run(baseDir)
+	run(baseDir, false)
 }
 
 func GenerateNestedStructure(dirPath string, levels, foldersPerLevel, filesPerFolder int, content string) {

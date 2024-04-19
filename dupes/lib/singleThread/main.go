@@ -8,7 +8,7 @@ import (
 	"github.com/sander-skjulsvik/tools/dupes/lib/common"
 )
 
-func Run(src string) *common.Dupes {
+func Run(src string, presentOnlyDupes bool) *common.Dupes {
 	dupes := &common.Dupes{
 		D: map[string]*common.Dupe{},
 	}
@@ -29,6 +29,6 @@ func Run(src string) *common.Dupes {
 	if err != nil {
 		log.Fatalf("Failed to walk src: %s, with err: %s", src, err.Error())
 	}
-	dupes.Print()
+	dupes.Present(presentOnlyDupes)
 	return dupes
 }

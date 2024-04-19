@@ -1,6 +1,7 @@
 package producerConsumer
 
 import (
+	"fmt"
 	"io/fs"
 	"path/filepath"
 	"sync"
@@ -24,7 +25,8 @@ func getFiles(root string, filePaths chan<- string) {
 func appendFileTreadSafe(dupes *common.Dupes, path string, lock *sync.Mutex) {
 	hash, err := common.HashFile(path)
 	if err != nil {
-		panic(err)
+		fmt.Printf("Could not hash: %s, err: %w\n", path, err)
+		return
 	}
 	lock.Lock()
 	defer lock.Unlock()
@@ -63,15 +65,11 @@ func ProcessFilesNCunsumers(filePaths <-chan string, numberOfConsumers int) *com
 	return &dupes
 }
 
-func presenter(dupes common.Dupes) {
-	dupes.Print()
-}
-
-func Run(path string) *common.Dupes {
+func Run(path string, presentOnlyDupes bool) *common.Dupes {
 	filePaths := make(chan string)
 	go getFiles(path, filePaths)
 	dupes := ProcessFiles(filePaths)
-	presenter(*dupes)
+	dupes.Present(presentOnlyDupes)
 	// storer(files)
 	return dupes
 }
