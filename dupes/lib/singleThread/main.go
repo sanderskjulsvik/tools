@@ -9,8 +9,10 @@ import (
 )
 
 func Run(src string, presentOnlyDupes bool) *common.Dupes {
+
 	dupes := &common.Dupes{
 		D: map[string]*common.Dupe{},
+		// ProgressBar: common.NewSchollzProgressbar(),
 	}
 
 	err := filepath.Walk(src, func(path string, info fs.FileInfo, err error) error {

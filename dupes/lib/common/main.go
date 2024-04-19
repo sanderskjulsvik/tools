@@ -23,6 +23,7 @@ type File struct {
 
 type Dupes struct {
 	D map[string]*Dupe
+	// ProgressBar ProgressBar
 }
 
 func (dupes Dupes) New() Dupes {

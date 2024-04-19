@@ -12,15 +12,24 @@ import (
 
 func main() {
 
-	method := strings.ToLower(*flag.String("method", "single", "Method (single or producerConsumer)"))
-	path := *flag.String("path", ".", "File path")
-	presentOnlyDupes := *flag.Bool("onlyDupes", true, "Only present dupes")
+	var (
+		method           string
+		path             string
+		presentOnlyDupes bool
+	)
+
+	flag.StringVar(&method, "method", "single", "Method (single or producerConsumer)")
+	flag.StringVar(&path, "path", ".", "File path")
+	flag.BoolVar(&presentOnlyDupes, "onlyDupes", true, "Only present dupes")
 
 	// Parse the command-line arguments
 	flag.Parse()
 
+	// LowerCasing method
+	method = strings.ToLower(method)
+
 	// Check if the method is one of the allowed values
-	if method != "single" && method != "producerConsumer" {
+	if method != "single" && method != "producerconsumer" {
 		fmt.Println("Invalid method. Allowed values are 'single' and 'producerConsumer'.")
 		os.Exit(1)
 	}

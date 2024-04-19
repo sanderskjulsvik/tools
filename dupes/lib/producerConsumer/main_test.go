@@ -1,6 +1,7 @@
 package producerConsumer
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
@@ -12,6 +13,7 @@ import (
 )
 
 func TestMain(m *testing.T) {
+	fmt.Println("running test test_main_producer_consumer")
 	common.TestRun("test_main_producer_consumer", Run)
 }
 
@@ -32,7 +34,9 @@ func TestGetFiles(t *testing.T) {
 			common.CreateFile(file, "nesting_file_content")
 		}
 		calculatedFilePaths := make(chan string)
-		go getFiles(workDir, calculatedFilePaths)
+		doneWg := sync.WaitGroup{}
+		doneWg.Add(1)
+		go getFiles(workDir, calculatedFilePaths, &doneWg)
 		ind := 0
 		for calculatedPath := range calculatedFilePaths {
 			if !slices.Contains(expectedFilePaths, filepath.ToSlash(calculatedPath)) {
@@ -56,7 +60,9 @@ func TestGetFiles(t *testing.T) {
 		common.CreateFile(workDir+"not_empty_file", "not_empty_file")
 
 		calculatedFilePaths := make(chan string)
-		go getFiles(workDir, calculatedFilePaths)
+		doneWg := sync.WaitGroup{}
+		doneWg.Add(1)
+		go getFiles(workDir, calculatedFilePaths, &doneWg)
 		ind := 0
 		for range calculatedFilePaths {
 			ind++
@@ -74,7 +80,9 @@ func TestGetFiles(t *testing.T) {
 		os.Symlink(workDir+"source_file", workDir+"destination_file")
 
 		calculatedFilePaths := make(chan string)
-		go getFiles(workDir, calculatedFilePaths)
+		doneWg := sync.WaitGroup{}
+		doneWg.Add(1)
+		go getFiles(workDir, calculatedFilePaths, &doneWg)
 		ind := 0
 		for calculatedPath := range calculatedFilePaths {
 			if filepath.ToSlash(calculatedPath) == workDir+"destination_file" {
@@ -249,8 +257,10 @@ func TestProcessFiles(t *testing.T) {
 		wg := sync.WaitGroup{}
 		var d *common.Dupes
 		wg.Add(1)
+		doneWg := sync.WaitGroup{}
+		doneWg.Add(1)
 		go func() {
-			d = ProcessFiles(filePaths)
+			d = ProcessFiles(filePaths, &doneWg)
 			wg.Done()
 		}()
 		filePaths <- filepath.Clean(path)
@@ -305,8 +315,10 @@ func TestProcessFiles(t *testing.T) {
 		wg := sync.WaitGroup{}
 		var d *common.Dupes
 		wg.Add(1)
+		doneWg := sync.WaitGroup{}
+		doneWg.Add(1)
 		go func() {
-			d = ProcessFiles(filePaths)
+			d = ProcessFiles(filePaths, &doneWg)
 			wg.Done()
 		}()
 		wgAdd := sync.WaitGroup{}
