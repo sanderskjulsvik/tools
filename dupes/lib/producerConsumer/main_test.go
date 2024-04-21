@@ -10,11 +10,17 @@ import (
 	"testing"
 
 	"github.com/sander-skjulsvik/tools/dupes/lib/common"
+	"github.com/sander-skjulsvik/tools/dupes/lib/test"
 )
 
-func TestMain(m *testing.T) {
+func TestRun(t *testing.T) {
 	fmt.Println("running test test_main_producer_consumer")
-	common.TestRun("test_main_producer_consumer", Run)
+	test.TestRun("test_main_producer_consumer", Run, t)
+}
+
+func TestRunManyFiles(t *testing.T) {
+	fmt.Println("running test producer consumer test_run_many_files")
+	test.TestRun("test_run_many_files", Run, t)
 }
 
 func TestGetFiles(t *testing.T) {
@@ -31,12 +37,10 @@ func TestGetFiles(t *testing.T) {
 			workDir + "folder/" + "folder/" + "nesting_file_name",
 		}
 		for _, file := range expectedFilePaths {
-			common.CreateFile(file, "nesting_file_content")
+			test.CreateFile(file, "nesting_file_content")
 		}
 		calculatedFilePaths := make(chan string)
-		doneWg := sync.WaitGroup{}
-		doneWg.Add(1)
-		go getFiles(workDir, calculatedFilePaths, &doneWg)
+		go getFiles(workDir, calculatedFilePaths)
 		ind := 0
 		for calculatedPath := range calculatedFilePaths {
 			if !slices.Contains(expectedFilePaths, filepath.ToSlash(calculatedPath)) {
@@ -56,13 +60,11 @@ func TestGetFiles(t *testing.T) {
 	{
 		workDir := baseDir + "test_emtpy_file/"
 		os.MkdirAll(filepath.Clean(workDir), 0755)
-		common.CreateEmptyFile(workDir + "empty_file")
-		common.CreateFile(workDir+"not_empty_file", "not_empty_file")
+		test.CreateEmptyFile(workDir + "empty_file")
+		test.CreateFile(workDir+"not_empty_file", "not_empty_file")
 
 		calculatedFilePaths := make(chan string)
-		doneWg := sync.WaitGroup{}
-		doneWg.Add(1)
-		go getFiles(workDir, calculatedFilePaths, &doneWg)
+		go getFiles(workDir, calculatedFilePaths)
 		ind := 0
 		for range calculatedFilePaths {
 			ind++
@@ -76,13 +78,11 @@ func TestGetFiles(t *testing.T) {
 	{
 		workDir := baseDir + "test_symlink/"
 		os.MkdirAll(filepath.Clean(workDir), 0755)
-		common.CreateEmptyFile(workDir + "source_file")
+		test.CreateEmptyFile(workDir + "source_file")
 		os.Symlink(workDir+"source_file", workDir+"destination_file")
 
 		calculatedFilePaths := make(chan string)
-		doneWg := sync.WaitGroup{}
-		doneWg.Add(1)
-		go getFiles(workDir, calculatedFilePaths, &doneWg)
+		go getFiles(workDir, calculatedFilePaths)
 		ind := 0
 		for calculatedPath := range calculatedFilePaths {
 			if filepath.ToSlash(calculatedPath) == workDir+"destination_file" {
@@ -117,7 +117,7 @@ func TestAppendFileTreadSafe(t *testing.T) {
 
 		path := workDir + "single_file"
 		lock := sync.Mutex{}
-		common.CreateFile(path, "I am a single file")
+		test.CreateFile(path, "I am a single file")
 		expectedHash := "1be3d7cfb6df7ff4ed6235a70603dc3ee8fa636a5e44a5c2ea8ffbcd38b41bd0"
 
 		appendFileTreadSafe(&d, filepath.Clean(path), &lock)
@@ -129,8 +129,8 @@ func TestAppendFileTreadSafe(t *testing.T) {
 			if len(val.Paths) != 1 {
 				t.Errorf("Append single file did not give 1 path, got: %d", len(val.Paths))
 			}
-			if filepath.ToSlash(*val.Paths[0]) != path {
-				t.Errorf("Append single file gave the wrong path, expected: %s, got: %s", path, filepath.ToSlash(*val.Paths[0]))
+			if filepath.ToSlash(val.Paths[0]) != path {
+				t.Errorf("Append single file gave the wrong path, expected: %s, got: %s", path, filepath.ToSlash(val.Paths[0]))
 			}
 			ind++
 			if ind > 1 {
@@ -147,7 +147,7 @@ func TestAppendFileTreadSafe(t *testing.T) {
 		d := common.Dupes.New(common.Dupes{})
 		n := 1000
 		for i := 0; i < n; i++ {
-			common.CreateFile(workDir+strconv.Itoa(i), "I am one of many files")
+			test.CreateFile(workDir+strconv.Itoa(i), "I am one of many files")
 		}
 
 		lock := sync.Mutex{}
@@ -185,7 +185,7 @@ func TestAppendFileTreadSafe(t *testing.T) {
 		d := common.Dupes.New(common.Dupes{})
 		n := 1000
 		for i := 0; i < n; i++ {
-			common.CreateFile(workDir+strconv.Itoa(i), "I am one of many files: "+strconv.Itoa(i))
+			test.CreateFile(workDir+strconv.Itoa(i), "I am one of many files: "+strconv.Itoa(i))
 		}
 
 		lock := sync.Mutex{}
@@ -217,7 +217,7 @@ func TestAppendFileTreadSafe(t *testing.T) {
 			lock := sync.Mutex{}
 			n := 10
 			for i := 0; i < n; i++ {
-				common.CreateFile(workDir+strconv.Itoa(i), "")
+				test.CreateFile(workDir+strconv.Itoa(i), "")
 			}
 			expectedHash := "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
 
@@ -250,17 +250,15 @@ func TestProcessFiles(t *testing.T) {
 		os.MkdirAll(filepath.Clean(workDir), 0755)
 		path := workDir + "single_file"
 
-		common.CreateFile(path, "I am a single file")
+		test.CreateFile(path, "I am a single file")
 		expectedHash := "1be3d7cfb6df7ff4ed6235a70603dc3ee8fa636a5e44a5c2ea8ffbcd38b41bd0"
 
 		filePaths := make(chan string)
 		wg := sync.WaitGroup{}
 		var d *common.Dupes
 		wg.Add(1)
-		doneWg := sync.WaitGroup{}
-		doneWg.Add(1)
 		go func() {
-			d = ProcessFiles(filePaths, &doneWg)
+			d = ProcessFiles(filePaths)
 			wg.Done()
 		}()
 		filePaths <- filepath.Clean(path)
@@ -308,17 +306,15 @@ func TestProcessFiles(t *testing.T) {
 			Content: "I am not unique",
 		}}
 		for _, file := range expectedFilePaths {
-			common.CreateFile(file.Path, file.Content)
+			test.CreateFile(file.Path, file.Content)
 		}
 
 		filePaths := make(chan string)
 		wg := sync.WaitGroup{}
 		var d *common.Dupes
 		wg.Add(1)
-		doneWg := sync.WaitGroup{}
-		doneWg.Add(1)
 		go func() {
-			d = ProcessFiles(filePaths, &doneWg)
+			d = ProcessFiles(filePaths)
 			wg.Done()
 		}()
 		wgAdd := sync.WaitGroup{}
@@ -340,14 +336,14 @@ func TestProcessFiles(t *testing.T) {
 			if len(val.Paths) == 1 {
 				if hash != "e83ada05c293a82c303c0348fb1003d886cb64578e60cc50971d86538b7c67fd" {
 					t.Errorf("TestProcessFiles: processing nested files, unique file hash wrog hash: file: %s, expected hash %s, got: %s",
-						*val.Paths[0], "e83ada05c293a82c303c0348fb1003d886cb64578e60cc50971d86538b7c67fd", hash,
+						val.Paths[0], "e83ada05c293a82c303c0348fb1003d886cb64578e60cc50971d86538b7c67fd", hash,
 					)
 				}
 
 			} else if len(val.Paths) == 4 {
 				if hash != "5789c6f31463a1cfc7fc5f2b1a593b2970b73f203efbd235d6d3b5a6d93c425f" {
 					t.Errorf("TestProcessFiles: processing nested files, not unique file hash wrog hash: file: %s, expected hash %s, got: %s",
-						*val.Paths[0], "5789c6f31463a1cfc7fc5f2b1a593b2970b73f203efbd235d6d3b5a6d93c425f", hash,
+						val.Paths[0], "5789c6f31463a1cfc7fc5f2b1a593b2970b73f203efbd235d6d3b5a6d93c425f", hash,
 					)
 				}
 				if len(val.Paths) != 4 {
@@ -370,7 +366,7 @@ func TestProcessFilesNConsumers(t *testing.T) {
 		os.MkdirAll(filepath.Clean(workDir), 0755)
 		path := workDir + "single_file"
 
-		common.CreateFile(path, "I am a single file")
+		test.CreateFile(path, "I am a single file")
 		expectedHash := "1be3d7cfb6df7ff4ed6235a70603dc3ee8fa636a5e44a5c2ea8ffbcd38b41bd0"
 
 		filePaths := make(chan string)
@@ -428,7 +424,7 @@ func TestProcessFilesNConsumers(t *testing.T) {
 			Content: "I am not unique",
 		}}
 		for _, file := range expectedFilePaths {
-			common.CreateFile(file.Path, file.Content)
+			test.CreateFile(file.Path, file.Content)
 		}
 
 		filePaths := make(chan string)
@@ -460,14 +456,14 @@ func TestProcessFilesNConsumers(t *testing.T) {
 			if len(val.Paths) == 1 {
 				if hash != "e83ada05c293a82c303c0348fb1003d886cb64578e60cc50971d86538b7c67fd" {
 					t.Errorf("TestProcessFiles: processing nested files, unique file hash wrog hash: file: %s, expected hash %s, got: %s",
-						*val.Paths[0], "e83ada05c293a82c303c0348fb1003d886cb64578e60cc50971d86538b7c67fd", hash,
+						val.Paths[0], "e83ada05c293a82c303c0348fb1003d886cb64578e60cc50971d86538b7c67fd", hash,
 					)
 				}
 
 			} else if len(val.Paths) == 4 {
 				if hash != "5789c6f31463a1cfc7fc5f2b1a593b2970b73f203efbd235d6d3b5a6d93c425f" {
 					t.Errorf("TestProcessFiles: processing nested files, not unique file hash wrog hash: file: %s, expected hash %s, got: %s",
-						*val.Paths[0], "5789c6f31463a1cfc7fc5f2b1a593b2970b73f203efbd235d6d3b5a6d93c425f", hash,
+						val.Paths[0], "5789c6f31463a1cfc7fc5f2b1a593b2970b73f203efbd235d6d3b5a6d93c425f", hash,
 					)
 				}
 				if len(val.Paths) != 4 {

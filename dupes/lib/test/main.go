@@ -1,13 +1,51 @@
-package common
+package test
 
 import (
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+	"testing"
+
+	"github.com/sander-skjulsvik/tools/dupes/lib/common"
+	"github.com/sander-skjulsvik/tools/libs/collections"
 )
 
-func TestRun(path string, run Run) {
+func TestRun(path string, run common.Run, t *testing.T) {
+	// Clean up the test files after the test is done
+	defer os.RemoveAll(path)
+	// Setup the expected dupes
+	SetupExpectedDupes(path)
+	// Run the run function to find the dupes
+	calculatedDupes := run(path, false)
+	// Check if the expected dupes are found
+	CheckExpectedDupes(ExpectedDupes, *calculatedDupes, t)
+
+}
+
+func CheckExpectedDupes(expectedDupes common.Dupes, calculatedDupes common.Dupes, t *testing.T) {
+	for _, dupe := range expectedDupes.D {
+
+		if calculatedDupe, ok := calculatedDupes.D[dupe.Hash]; ok {
+			if len(dupe.Paths) != len(calculatedDupe.Paths) {
+				t.Errorf("Expected and calculated dupes have different number of paths.")
+				return
+			}
+			for _, path := range dupe.Paths {
+				if !collections.Contains(calculatedDupe.Paths, path) {
+					t.Errorf("Calculated dupes do not contain all expected paths.")
+					return
+				}
+			}
+		} else {
+			t.Errorf("Calculated dupes do not contain all expected hashes.")
+			return
+		}
+	}
+	t.Log("All expected dupes found.\n")
+}
+
+func TestRunManyFiles(path string, run common.Run, t *testing.T) {
 	var (
 		baseDir            = path
 		numLevels          = 1 // Number of levels of nested folders

@@ -13,7 +13,7 @@ type Run func(string, bool) *Dupes
 
 type Dupe struct {
 	Hash  string
-	Paths []*string
+	Paths []string
 }
 
 type File struct {
@@ -47,10 +47,10 @@ func (dupes *Dupes) AppendHashedFile(path string, hash string) {
 		// If file hash has not been found yet
 		dupes.D[hash] = &Dupe{
 			Hash:  hash,
-			Paths: []*string{&path},
+			Paths: []string{path},
 		}
 	} else {
-		dupes.D[hash].Paths = append(dupes.D[hash].Paths, &path)
+		dupes.D[hash].Paths = append(dupes.D[hash].Paths, path)
 	}
 }
 
@@ -58,7 +58,7 @@ func (dupes *Dupes) Print() {
 	for _, dupe := range dupes.D {
 		fmt.Printf("sha256:%s \n", dupe.Hash)
 		for _, path := range dupe.Paths {
-			fmt.Printf("    %s \n", *path)
+			fmt.Printf("    %s \n", path)
 		}
 		fmt.Println("")
 	}
@@ -69,7 +69,7 @@ func (dupes *Dupes) PrintOnlyDupes() {
 		if len(dupe.Paths) > 1 {
 			fmt.Printf("sha256:%s \n", dupe.Hash)
 			for _, path := range dupe.Paths {
-				fmt.Printf("    %s \n", *path)
+				fmt.Printf("    %s \n", path)
 			}
 			fmt.Println("")
 		}
