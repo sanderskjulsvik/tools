@@ -377,8 +377,10 @@ func TestProcessFilesNConsumers(t *testing.T) {
 		wg := sync.WaitGroup{}
 		var d *common.Dupes
 		wg.Add(1)
+		doneWg := sync.WaitGroup{}
+		doneWg.Add(1)
 		go func() {
-			d = ProcessFilesNCunsumers(filePaths, 3)
+			d = ProcessFilesNCunsumers(filePaths, 3, &doneWg)
 			wg.Done()
 		}()
 		filePaths <- filepath.Clean(path)
@@ -433,8 +435,10 @@ func TestProcessFilesNConsumers(t *testing.T) {
 		wg := sync.WaitGroup{}
 		var d *common.Dupes
 		wg.Add(1)
+		doneWg := sync.WaitGroup{}
+		doneWg.Add(1)
 		go func() {
-			d = ProcessFilesNCunsumers(filePaths, 3)
+			d = ProcessFilesNCunsumers(filePaths, 3, &doneWg)
 			wg.Done()
 		}()
 		wgAdd := sync.WaitGroup{}

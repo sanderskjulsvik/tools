@@ -10,9 +10,9 @@ import (
 func TestRun(path string, run Run) {
 	var (
 		baseDir            = path
-		numLevels          = 5 // Number of levels of nested folders
-		numFoldersPerLevel = 5 // Number of folders per level
-		numFilesPerFolder  = 5 // Number of files per folder
+		numLevels          = 1 // Number of levels of nested folders
+		numFoldersPerLevel = 2 // Number of folders per level
+		numFilesPerFolder  = 2 // Number of files per folder
 		content            = "This is the common content for all files in the folder."
 	)
 
@@ -28,6 +28,7 @@ func TestRun(path string, run Run) {
 
 	fmt.Println("Nested folder structure generated successfully.")
 	run(baseDir, false)
+	fmt.Printf("Done running! \n")
 }
 
 func GenerateNestedStructure(dirPath string, levels, foldersPerLevel, filesPerFolder int, content string) {

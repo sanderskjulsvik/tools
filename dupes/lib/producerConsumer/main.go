@@ -3,13 +3,10 @@ package producerConsumer
 import (
 	"fmt"
 	"io/fs"
-	"log"
 	"path/filepath"
 	"sync"
-	"time"
 
 	"github.com/sander-skjulsvik/tools/dupes/lib/common"
-	"github.com/sander-skjulsvik/tools/libs/chans"
 )
 
 // Works like a generator, yelding all regular files
@@ -52,23 +49,22 @@ func ProcessFiles(filePaths <-chan string, doneWg *sync.WaitGroup) *common.Dupes
 	dupes := common.Dupes.New(common.Dupes{})
 	wg := sync.WaitGroup{}
 	dupesWl := sync.Mutex{}
-	time.Sleep(10 * time.Second)
-	if chans.IsClosed(filePaths) {
-		log.Fatalln("Chan closed before managed to access it 1")
-	}
+	// if chans.IsClosed(filePaths) {
+	// 	log.Fatalln("Chan closed before managed to access it 1")
+	// }
 	for filePath := range filePaths {
 		wg.Add(1)
-		go func() {
-			appendFileTreadSafe(&dupes, filePath, &dupesWl)
+		go func(fp string) {
+			appendFileTreadSafe(&dupes, fp, &dupesWl)
 			wg.Done()
-		}()
+		}(filePath)
 	}
 	wg.Wait()
 	doneWg.Done()
 	return &dupes
 }
 
-func ProcessFilesNCunsumers(filePaths <-chan string, numberOfConsumers int) *common.Dupes {
+func ProcessFilesNCunsumers(filePaths <-chan string, numberOfConsumers int, doneWg *sync.WaitGroup) *common.Dupes {
 	dupes := common.Dupes.New(common.Dupes{})
 	wg := sync.WaitGroup{}
 	dupesWl := sync.Mutex{}
@@ -82,18 +78,16 @@ func ProcessFilesNCunsumers(filePaths <-chan string, numberOfConsumers int) *com
 		}()
 	}
 	wg.Wait()
+	doneWg.Done()
+	doneWg.Wait()
 	return &dupes
 }
 
 func Run(path string, presentOnlyDupes bool) *common.Dupes {
-	filePaths := make(chan string)
+	filePaths := make(chan string, 10)
 	doneGroup := sync.WaitGroup{}
 	doneGroup.Add(2)
 	go getFiles(path, filePaths, &doneGroup)
-	time.Sleep(10 * time.Second)
-	if chans.IsClosed(filePaths) {
-		log.Fatalln("Chan closed before managed to access it 2")
-	}
 	dupes := ProcessFiles(filePaths, &doneGroup)
 	dupes.Present(presentOnlyDupes)
 	// storer(files)
