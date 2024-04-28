@@ -20,15 +20,11 @@ type File struct {
 }
 
 func SetupExpectedDupes(path string) {
-	// Create the base directory if it doesn't exist
-	if err := os.MkdirAll(path, os.ModePerm); err != nil {
-		fmt.Println("Error creating base directory:", err)
-		return
-	}
+	expectedDupes := GetExpectedDupes(path)
 	// Create the nested folder structure from ExectedDupes
-	for hash, dupe := range ExpectedDupes.D {
+	for hash, dupe := range expectedDupes.D {
 		for _, filePath := range dupe.Paths {
-			fullPath := filepath.Join(path, filePath)
+			fullPath := filePath
 			// Create the parent folders if they don't exist
 			CrateParentFolders(fullPath)
 			// Create the file with content from ExpectedDupesHashMap
@@ -50,49 +46,58 @@ func CrateParentFolders(path string) {
 
 // ExpectedDupesHashMap is a map of hashes to the content of the files with that hash, used for testing
 var ExpectedDupesHashMap map[string]string = map[string]string{
-	"1ff0d1ef84204e0fd88c39dd6efb1ba449c6d4a4841f2906425515412cf6178b": "Group1Content",
-	"5f8009bbd085f744953a9c8a7983f19e0f16edd275505b15af35953240fb5502": "Group2Content",
-	"1ee71ec5183be6c5b38bfe53319dcd950309947e20e21a228ffe5abc269b186e": "Group3Content",
+	"a22fcc1f0e918f91dcfc42577c4d522247dd30068a4d48abf07309ad9e30fae3": "Group1Content",
+	"273f01d16e4462e20fb94153d4b98a2dd36b0c5cd522e02cdeba5b275f4e3a1c": "Group2Content",
+	"3edb15fc42ec3928274be9b5b29435130b2d48c86b750c1427aa788a077dd598": "Group3Content",
 	"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855": "",
 }
 
 // ExpectedDupes is a map of hashes to the paths of the files with that hash, used for testing
-var ExpectedDupes common.Dupes = common.Dupes{
-	D: map[string]*common.Dupe{
-		"1ff0d1ef84204e0fd88c39dd6efb1ba449c6d4a4841f2906425515412cf6178b": {
-			Hash: "1ff0d1ef84204e0fd88c39dd6efb1ba449c6d4a4841f2906425515412cf6178b",
-			Paths: []string{
-				"Folder1/Group1",
-				"Folder1/Folder1/Group1",
-				"Folder2/Group1",
-				"Folder2/Folder1/Folder2/Folder2/Group1",
-				"Group1_2",
-			},
-		}, "5f8009bbd085f744953a9c8a7983f19e0f16edd275505b15af35953240fb5502": {
-			Hash: "5f8009bbd085f744953a9c8a7983f19e0f16edd275505b15af35953240fb5502",
-			Paths: []string{
-				"Folder1/Group2",
-				"Folder1/Folder1/Group2",
-				"Folder2/Group2",
-				"Folder2/Folder1/Folder2/Folder2/Group2",
-				"Folder2/Folder1/Folder2/Folder2/Group2_2",
-				// Same name as files in group1
-				"Folder2/Folder1/Folder2/Group1",
-				"Group2_2",
-			},
-		}, "1ee71ec5183be6c5b38bfe53319dcd950309947e20e21a228ffe5abc269b186e": {
-			Hash: "1ee71ec5183be6c5b38bfe53319dcd950309947e20e21a228ffe5abc269b186e",
-			Paths: []string{
-				// Only one file
-				"Folder2/Group3",
-			},
-		}, "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855": {
-			Hash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-			Paths: []string{
-				"Folder2/emtpy1",
-				"Folder2/Folder1/emtpy1",
-				"Folder2/Folder1/Folder2/emtpy1",
+func GetExpectedDupes(basePath string) common.Dupes {
+	d := common.Dupes{
+		D: map[string]*common.Dupe{
+			"a22fcc1f0e918f91dcfc42577c4d522247dd30068a4d48abf07309ad9e30fae3": {
+				Hash: "a22fcc1f0e918f91dcfc42577c4d522247dd30068a4d48abf07309ad9e30fae3",
+				Paths: []string{
+					"Folder1/Group1",
+					"Folder1/Folder1/Group1",
+					"Folder2/Group1",
+					"Folder2/Folder1/Folder2/Folder2/Group1",
+					"Group1_2",
+				},
+			}, "273f01d16e4462e20fb94153d4b98a2dd36b0c5cd522e02cdeba5b275f4e3a1c": {
+				Hash: "273f01d16e4462e20fb94153d4b98a2dd36b0c5cd522e02cdeba5b275f4e3a1c",
+				Paths: []string{
+					"Folder1/Group2",
+					"Folder1/Folder1/Group2",
+					"Folder2/Group2",
+					"Folder2/Folder1/Folder2/Folder2/Group2",
+					"Folder2/Folder1/Folder2/Folder2/Group2_2",
+					// Same name as files in group1
+					"Folder2/Folder1/Folder2/Group1",
+					"Group2_2",
+				},
+			}, "3edb15fc42ec3928274be9b5b29435130b2d48c86b750c1427aa788a077dd598": {
+				Hash: "3edb15fc42ec3928274be9b5b29435130b2d48c86b750c1427aa788a077dd598",
+				Paths: []string{
+					// Only one file
+					"Folder2/Group3",
+				},
+			}, "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855": {
+				Hash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+				Paths: []string{
+					"Folder2/emtpy1",
+					"Folder2/Folder1/emtpy1",
+					"Folder2/Folder1/Folder2/emtpy1",
+				},
 			},
 		},
-	},
+	}
+	// Add the base path to the paths
+	for _, dupe := range d.D {
+		for i, path := range dupe.Paths {
+			dupe.Paths[i] = filepath.Join(basePath, path)
+		}
+	}
+	return d
 }

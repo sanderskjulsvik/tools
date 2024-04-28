@@ -19,19 +19,21 @@ func TestRun(path string, run common.Run, t *testing.T) {
 	// Run the run function to find the dupes
 	calculatedDupes := run(path, false)
 	// Check if the expected dupes are found
-	CheckExpectedDupes(ExpectedDupes, *calculatedDupes, t)
+	CheckExpectedDupes(GetExpectedDupes(path), *calculatedDupes, t)
 }
 
 func CheckExpectedDupes(expectedDupes common.Dupes, calculatedDupes common.Dupes, t *testing.T) {
 	for _, dupe := range expectedDupes.D {
 		if calculatedDupe, ok := calculatedDupes.D[dupe.Hash]; ok {
+			// Checking if right number of paths are found
 			if len(dupe.Paths) != len(calculatedDupe.Paths) {
 				t.Errorf("Expected and calculated dupes have different number of paths.")
 				return
 			}
+			// Checking if the correct paths are found
 			for _, path := range dupe.Paths {
 				if !collections.Contains(calculatedDupe.Paths, path) {
-					t.Errorf("Calculated dupes do not contain all expected paths.")
+					t.Errorf("Calculated dupes do not contain all expected paths. Hash: %s, Expected: %v, Calculated: %v", dupe.Hash, dupe.Paths, calculatedDupe.Paths)
 					return
 				}
 			}
