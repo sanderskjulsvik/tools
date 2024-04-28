@@ -1,4 +1,4 @@
-package producerConsumer
+package producerconsumer
 
 import (
 	"fmt"
@@ -10,14 +10,7 @@ import (
 )
 
 // Works like a generator, yelding all regular files
-func getFiles(root string, filePaths chan<- string, doneWg *sync.WaitGroup) {
-	defer func() {
-		fmt.Println("I am in defer get files")
-		doneWg.Done()
-		doneWg.Wait()
-		close(filePaths)
-	}()
-
+func getFiles(root string, filePaths chan<- string) {
 	filepath.Walk(root, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			fmt.Errorf("Failed to walk file %s, %v", path, err)
@@ -30,7 +23,7 @@ func getFiles(root string, filePaths chan<- string, doneWg *sync.WaitGroup) {
 		}
 		return nil
 	})
-
+	close(filePaths)
 }
 
 func appendFileTreadSafe(dupes *common.Dupes, path string, lock *sync.Mutex) {
@@ -45,7 +38,7 @@ func appendFileTreadSafe(dupes *common.Dupes, path string, lock *sync.Mutex) {
 	// dupes.ProgressBar.Add1()
 }
 
-func ProcessFiles(filePaths <-chan string, doneWg *sync.WaitGroup) *common.Dupes {
+func ProcessFiles(filePaths <-chan string) *common.Dupes {
 	dupes := common.Dupes.New(common.Dupes{})
 	wg := sync.WaitGroup{}
 	dupesWl := sync.Mutex{}
@@ -60,7 +53,6 @@ func ProcessFiles(filePaths <-chan string, doneWg *sync.WaitGroup) *common.Dupes
 		}(filePath)
 	}
 	wg.Wait()
-	doneWg.Done()
 	return &dupes
 }
 
@@ -79,16 +71,14 @@ func ProcessFilesNCunsumers(filePaths <-chan string, numberOfConsumers int, done
 	}
 	wg.Wait()
 	doneWg.Done()
-	doneWg.Wait()
 	return &dupes
 }
 
 func Run(path string, presentOnlyDupes bool) *common.Dupes {
-	filePaths := make(chan string, 10)
-	doneGroup := sync.WaitGroup{}
-	doneGroup.Add(2)
-	go getFiles(path, filePaths, &doneGroup)
-	dupes := ProcessFiles(filePaths, &doneGroup)
+	filePaths := make(chan string)
+	go getFiles(path, filePaths)
+	// sleep 10 seconds
+	dupes := ProcessFiles(filePaths)
 	dupes.Present(presentOnlyDupes)
 	// storer(files)
 	return dupes
