@@ -20,12 +20,10 @@ func TestRun(path string, run common.Run, t *testing.T) {
 	calculatedDupes := run(path, false)
 	// Check if the expected dupes are found
 	CheckExpectedDupes(ExpectedDupes, *calculatedDupes, t)
-
 }
 
 func CheckExpectedDupes(expectedDupes common.Dupes, calculatedDupes common.Dupes, t *testing.T) {
 	for _, dupe := range expectedDupes.D {
-
 		if calculatedDupe, ok := calculatedDupes.D[dupe.Hash]; ok {
 			if len(dupe.Paths) != len(calculatedDupe.Paths) {
 				t.Errorf("Expected and calculated dupes have different number of paths.")
@@ -38,7 +36,7 @@ func CheckExpectedDupes(expectedDupes common.Dupes, calculatedDupes common.Dupes
 				}
 			}
 		} else {
-			t.Errorf("Calculated dupes do not contain all expected hashes.")
+			t.Errorf("Calculated dupes do not contain all expected hashes. Expected: %v, Calculated: %v", dupe.Hash, calculatedDupes)
 			return
 		}
 	}
@@ -120,9 +118,9 @@ func check(e error) {
 
 func CreateEmptyFile(path string) {
 	d := []byte("")
-	check(os.WriteFile(filepath.Clean(path), d, 0644))
+	check(os.WriteFile(filepath.Clean(path), d, 0o644))
 }
 
 func CreateFile(path, content string) {
-	check(os.WriteFile(filepath.Clean(path), []byte(content), 0644))
+	check(os.WriteFile(filepath.Clean(path), []byte(content), 0o644))
 }

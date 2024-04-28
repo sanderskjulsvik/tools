@@ -1,7 +1,6 @@
-package producerConsumer
+package producerconsumer
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
@@ -14,13 +13,16 @@ import (
 )
 
 func TestRun(t *testing.T) {
-	fmt.Println("running test test_main_producer_consumer")
-	test.TestRun("test_main_producer_consumer", Run, t)
+	testDir := "test_main_producer_consumer/"
+	defer os.RemoveAll(filepath.Clean(testDir))
+	t.Logf("running test main producer consumer. testDir: %s", testDir)
+	test.TestRun(testDir, Run, t)
 }
 
 func TestRunManyFiles(t *testing.T) {
-	fmt.Println("running test producer consumer test_run_many_files")
-	test.TestRun("test_run_many_files", Run, t)
+	testDir := filepath.Clean("test_run_many_files/")
+	t.Logf("running test producer consumer many files. testDir: %s", testDir)
+	test.TestRun(testDir, Run, t)
 }
 
 func TestGetFiles(t *testing.T) {
@@ -30,7 +32,7 @@ func TestGetFiles(t *testing.T) {
 	// Nesting
 	{
 		workDir := baseDir + "test_nesting/"
-		os.MkdirAll(workDir+filepath.Clean("/folder/folder/"), 0755)
+		os.MkdirAll(workDir+filepath.Clean("/folder/folder/"), 0o755)
 		expectedFilePaths := []string{
 			workDir + "nesting_file_name",
 			workDir + "folder/" + "nesting_file_name",
@@ -59,7 +61,7 @@ func TestGetFiles(t *testing.T) {
 	// Empty file
 	{
 		workDir := baseDir + "test_emtpy_file/"
-		os.MkdirAll(filepath.Clean(workDir), 0755)
+		os.MkdirAll(filepath.Clean(workDir), 0o755)
 		test.CreateEmptyFile(workDir + "empty_file")
 		test.CreateFile(workDir+"not_empty_file", "not_empty_file")
 
@@ -77,7 +79,7 @@ func TestGetFiles(t *testing.T) {
 	// Symlink
 	{
 		workDir := baseDir + "test_symlink/"
-		os.MkdirAll(filepath.Clean(workDir), 0755)
+		os.MkdirAll(filepath.Clean(workDir), 0o755)
 		test.CreateEmptyFile(workDir + "source_file")
 		os.Symlink(workDir+"source_file", workDir+"destination_file")
 
@@ -112,7 +114,7 @@ func TestAppendFileTreadSafe(t *testing.T) {
 	// Append a single file
 	{
 		workDir := baseDir + "single_file/"
-		os.MkdirAll(filepath.Clean(workDir), 0755)
+		os.MkdirAll(filepath.Clean(workDir), 0o755)
 		d := common.Dupes.New(common.Dupes{})
 
 		path := workDir + "single_file"
@@ -143,7 +145,7 @@ func TestAppendFileTreadSafe(t *testing.T) {
 	// Adding many equal files in parallel
 	{
 		workDir := baseDir + "many_equal_files/"
-		os.MkdirAll(filepath.Clean(workDir), 0755)
+		os.MkdirAll(filepath.Clean(workDir), 0o755)
 		d := common.Dupes.New(common.Dupes{})
 		n := 1000
 		for i := 0; i < n; i++ {
@@ -181,7 +183,7 @@ func TestAppendFileTreadSafe(t *testing.T) {
 	// Adding many different files
 	{
 		workDir := baseDir + "many_different_files/"
-		os.MkdirAll(filepath.Clean(workDir), 0755)
+		os.MkdirAll(filepath.Clean(workDir), 0o755)
 		d := common.Dupes.New(common.Dupes{})
 		n := 1000
 		for i := 0; i < n; i++ {
@@ -211,7 +213,7 @@ func TestAppendFileTreadSafe(t *testing.T) {
 	{
 		{
 			workDir := baseDir + "empty_files/"
-			os.MkdirAll(filepath.Clean(workDir), 0755)
+			os.MkdirAll(filepath.Clean(workDir), 0o755)
 			d := common.Dupes.New(common.Dupes{})
 
 			lock := sync.Mutex{}
@@ -247,7 +249,7 @@ func TestProcessFiles(t *testing.T) {
 	// Process 1 file
 	{
 		workDir := baseDir + "one_file/"
-		os.MkdirAll(filepath.Clean(workDir), 0755)
+		os.MkdirAll(filepath.Clean(workDir), 0o755)
 		path := workDir + "single_file"
 
 		test.CreateFile(path, "I am a single file")
@@ -286,9 +288,9 @@ func TestProcessFiles(t *testing.T) {
 			Hash    string
 		}
 		workDir := baseDir + "nested_files/"
-		os.MkdirAll(filepath.Clean(workDir), 0755)
+		os.MkdirAll(filepath.Clean(workDir), 0o755)
 
-		os.MkdirAll(workDir+filepath.Clean("/folder/folder/"), 0755)
+		os.MkdirAll(workDir+filepath.Clean("/folder/folder/"), 0o755)
 		expectedFilePaths := []File{{
 			Path:    workDir + "nesting_file_name3123",
 			Content: "I am unique",
@@ -339,7 +341,6 @@ func TestProcessFiles(t *testing.T) {
 						val.Paths[0], "e83ada05c293a82c303c0348fb1003d886cb64578e60cc50971d86538b7c67fd", hash,
 					)
 				}
-
 			} else if len(val.Paths) == 4 {
 				if hash != "5789c6f31463a1cfc7fc5f2b1a593b2970b73f203efbd235d6d3b5a6d93c425f" {
 					t.Errorf("TestProcessFiles: processing nested files, not unique file hash wrog hash: file: %s, expected hash %s, got: %s",
@@ -363,7 +364,7 @@ func TestProcessFilesNConsumers(t *testing.T) {
 	// Process 1 file
 	{
 		workDir := baseDir + "one_file/"
-		os.MkdirAll(filepath.Clean(workDir), 0755)
+		os.MkdirAll(filepath.Clean(workDir), 0o755)
 		path := workDir + "single_file"
 
 		test.CreateFile(path, "I am a single file")
@@ -404,9 +405,9 @@ func TestProcessFilesNConsumers(t *testing.T) {
 			Hash    string
 		}
 		workDir := baseDir + "nested_files/"
-		os.MkdirAll(filepath.Clean(workDir), 0755)
+		os.MkdirAll(filepath.Clean(workDir), 0o755)
 
-		os.MkdirAll(workDir+filepath.Clean("/folder/folder/"), 0755)
+		os.MkdirAll(workDir+filepath.Clean("/folder/folder/"), 0o755)
 		expectedFilePaths := []File{{
 			Path:    workDir + "nesting_file_name3123",
 			Content: "I am unique",
@@ -459,7 +460,6 @@ func TestProcessFilesNConsumers(t *testing.T) {
 						val.Paths[0], "e83ada05c293a82c303c0348fb1003d886cb64578e60cc50971d86538b7c67fd", hash,
 					)
 				}
-
 			} else if len(val.Paths) == 4 {
 				if hash != "5789c6f31463a1cfc7fc5f2b1a593b2970b73f203efbd235d6d3b5a6d93c425f" {
 					t.Errorf("TestProcessFiles: processing nested files, not unique file hash wrog hash: file: %s, expected hash %s, got: %s",

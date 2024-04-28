@@ -1,10 +1,11 @@
-package producerConsumer
+package producerconsumer
 
 import (
 	"fmt"
 	"io/fs"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/sander-skjulsvik/tools/dupes/lib/common"
 )
@@ -75,8 +76,10 @@ func ProcessFilesNCunsumers(filePaths <-chan string, numberOfConsumers int, done
 }
 
 func Run(path string, presentOnlyDupes bool) *common.Dupes {
-	filePaths := make(chan string, 10)
+	filePaths := make(chan string)
 	go getFiles(path, filePaths)
+	// sleep 10 seconds
+	time.Sleep(10 * time.Second)
 	dupes := ProcessFiles(filePaths)
 	dupes.Present(presentOnlyDupes)
 	// storer(files)
