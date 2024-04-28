@@ -7,21 +7,17 @@ import (
 	"strconv"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/sander-skjulsvik/tools/dupes/lib/common"
 	"github.com/sander-skjulsvik/tools/dupes/lib/test"
+	"gotest.tools/assert"
 )
 
 func TestRun(t *testing.T) {
 	testDir := "test_main_producer_consumer/"
 	defer os.RemoveAll(filepath.Clean(testDir))
 	t.Logf("running test main producer consumer. testDir: %s", testDir)
-	test.TestRun(testDir, Run, t)
-}
-
-func TestRunManyFiles(t *testing.T) {
-	testDir := filepath.Clean("test_run_many_files/")
-	t.Logf("running test producer consumer many files. testDir: %s", testDir)
 	test.TestRun(testDir, Run, t)
 }
 
@@ -104,6 +100,25 @@ func TestGetFiles(t *testing.T) {
 				)
 			}
 		}
+	}
+	// Sleeping before consuming
+	// This test is to cach if the program closes the channel without locking or panicing
+	{
+		workDir := baseDir + "sleeping_before_consuming/"
+		os.MkdirAll(filepath.Clean(workDir), 0o755)
+		test.CreateFile(filepath.Join(workDir, "1"), "1")
+		test.CreateFile(filepath.Join(workDir, "2"), "2")
+		test.CreateFile(filepath.Join(workDir, "3"), "3")
+
+		calculatedFilePathsChan := make(chan string)
+		calculatedFilePathsSlice := []string{}
+		go getFiles(workDir, calculatedFilePathsChan)
+		time.Sleep(10 * time.Second)
+
+		for calcPath := range calculatedFilePathsChan {
+			calculatedFilePathsSlice = append(calculatedFilePathsSlice, calcPath)
+		}
+		assert.Assert(t, len(calculatedFilePathsSlice) == 3)
 	}
 }
 
