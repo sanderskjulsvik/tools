@@ -44,6 +44,18 @@ func (dupes *Dupes) AppendHashedFile(path string, hash string) {
 	}
 }
 
+func (dupes *Dupes) appendDupe(dupe *Dupe) {
+	for _, path := range dupe.Paths {
+		dupes.AppendHashedFile(path, dupe.Hash)
+	}
+}
+
+func (dupes *Dupes) AppendDupes(other *Dupes) {
+	for _, dupe := range other.D {
+		dupes.appendDupe(dupe)
+	}
+}
+
 func (dupes *Dupes) print() {
 	for _, dupe := range dupes.D {
 		fmt.Printf("sha256:%s \n", dupe.Hash)
@@ -74,4 +86,46 @@ func (dupes *Dupes) Present(onlyDupes bool) {
 	} else {
 		dupes.print()
 	}
+}
+
+// OnlyInBoth returns a new dupes struct with only the files that are in both dupes structs
+func (dupes *Dupes) OnlyInBoth(other *Dupes) *Dupes {
+	both := NewDupes()
+	for hash, dupe := range dupes.D {
+		if otherDupe, ok := other.D[hash]; ok {
+			both.appendDupe(dupe)
+			both.appendDupe(otherDupe)
+		}
+	}
+	return &both
+}
+
+// OnlyInSelf returns a new dupes struct with only the files that are not in the other dupes struct
+func (dupes *Dupes) OnlyInSelf(other *Dupes) *Dupes {
+	onlyInSelf := NewDupes()
+	for hash, dupe := range dupes.D {
+		if _, ok := other.D[hash]; !ok {
+			onlyInSelf.appendDupe(dupe)
+		}
+	}
+	return &onlyInSelf
+}
+
+// HasSameFiles checks if two dupes structs have the same files,
+// i.e. the same hashes, does not care about paths
+func (dupes *Dupes) HasSameFiles(other *Dupes) bool {
+	if len(dupes.D) != len(other.D) {
+		return false
+	}
+	for hash := range dupes.D {
+		if _, ok := other.D[hash]; !ok {
+			return false
+		}
+	}
+	for hash := range other.D {
+		if _, ok := dupes.D[hash]; !ok {
+			return false
+		}
+	}
+	return true
 }
