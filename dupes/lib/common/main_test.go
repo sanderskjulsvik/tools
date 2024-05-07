@@ -60,7 +60,7 @@ func setup() {
 func TestAppend(t *testing.T) {
 	defer cleanUp()
 	setup()
-	d := common.Dupes.New(common.Dupes{})
+	d := common.NewDupes()
 	if _, err := d.Append(TEST_DIR + "1"); err != nil {
 		t.Errorf("Append returned error: %e", err)
 		t.FailNow()

@@ -39,7 +39,7 @@ func appendFileTreadSafe(dupes *common.Dupes, path string, lock *sync.Mutex) {
 }
 
 func ProcessFiles(filePaths <-chan string) *common.Dupes {
-	dupes := common.Dupes.New(common.Dupes{})
+	dupes := common.NewDupes()
 	wg := sync.WaitGroup{}
 	dupesWl := sync.Mutex{}
 	// if chans.IsClosed(filePaths) {
@@ -57,7 +57,7 @@ func ProcessFiles(filePaths <-chan string) *common.Dupes {
 }
 
 func ProcessFilesNCunsumers(filePaths <-chan string, numberOfConsumers int, doneWg *sync.WaitGroup) *common.Dupes {
-	dupes := common.Dupes.New(common.Dupes{})
+	dupes := common.NewDupes()
 	wg := sync.WaitGroup{}
 	dupesWl := sync.Mutex{}
 	wg.Add(numberOfConsumers)
@@ -74,12 +74,11 @@ func ProcessFilesNCunsumers(filePaths <-chan string, numberOfConsumers int, done
 	return &dupes
 }
 
-func Run(path string, presentOnlyDupes bool) *common.Dupes {
+func Run(path string) *common.Dupes {
 	filePaths := make(chan string)
 	go getFiles(path, filePaths)
 	// sleep 10 seconds
 	dupes := ProcessFiles(filePaths)
-	dupes.Present(presentOnlyDupes)
 	// storer(files)
 	return dupes
 }
