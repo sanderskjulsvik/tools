@@ -8,17 +8,6 @@ import (
 	"github.com/sander-skjulsvik/tools/dupes/lib/common"
 )
 
-type Folder struct {
-	Name    string
-	Files   []File
-	Folders []Folder
-}
-
-type File struct {
-	Name    string
-	Content string
-}
-
 func SetupExpectedDupes(path string) {
 	expectedDupes := GetExpectedDupes(path)
 	// Create the nested folder structure from ExectedDupes

@@ -1,4 +1,4 @@
-package comparedirs
+package dupescomparedirs
 
 import (
 	"github.com/sander-skjulsvik/tools/dupes/lib/common"

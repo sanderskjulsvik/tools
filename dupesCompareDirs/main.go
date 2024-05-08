@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"os"
 
-	comparedirs "github.com/sander-skjulsvik/tools/compareDirs/lib"
 	"github.com/sander-skjulsvik/tools/dupes/lib/common"
+	comparedirs "github.com/sander-skjulsvik/tools/dupesCompareDirs/lib"
 )
 
 func main() {
 	// Define command-line flags
-	dir1 := flag.String("dir1", "", "First directory path")
-	dir2 := flag.String("dir2", "", "Second directory path")
-	mode := flag.String("mode", "All", "Mode to run in")
+	mode := flag.String("mode", "all", "Mode to run in")
+	dir1 := flag.String("dir1", "", "Path to the first directory")
+	dir2 := flag.String("dir2", "", "Path to the second directory")
 
 	// Parse command-line flags
 	flag.Parse()
