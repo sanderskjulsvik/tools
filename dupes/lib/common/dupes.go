@@ -1,19 +1,20 @@
 package common
 
 import (
+	"encoding/json"
 	"fmt"
 )
 
 // Dupes is a struct for holding duplicate files
 type Dupes struct {
-	D map[string]*Dupe
+	D map[string]*Dupe `json:"dupes"`
 	// ProgressBar ProgressBar
 }
 
 // Dupe is a struct for holding duplicates of a file
 type Dupe struct {
-	Hash  string
-	Paths []string
+	Hash  string   `json:"hash"`
+	Paths []string `json:"paths"`
 }
 
 // NewDupes creates a new dupes struct
@@ -58,6 +59,17 @@ func (dupes *Dupes) AppendDupes(other *Dupes) {
 	}
 }
 
+// GetOnlyDupes returns a new dupes struct with only the files that have duplicates
+func (dupes *Dupes) GetOnlyDupes() *Dupes {
+	onlyDupes := NewDupes()
+	for _, dupe := range dupes.D {
+		if len(dupe.Paths) > 1 {
+			onlyDupes.appendDupe(dupe)
+		}
+	}
+	return &onlyDupes
+}
+
 func (dupes *Dupes) print() {
 	for _, dupe := range dupes.D {
 		fmt.Printf("sha256:%s \n", dupe.Hash)
@@ -70,15 +82,27 @@ func (dupes *Dupes) print() {
 
 // PrintOnlyDupes prints only files that have duplicates
 func (dupes *Dupes) PrintOnlyDupes() {
-	for _, dupe := range dupes.D {
-		if len(dupe.Paths) > 1 {
-			fmt.Printf("sha256:%s \n", dupe.Hash)
-			for _, path := range dupe.Paths {
-				fmt.Printf("    %s \n", path)
-			}
-			fmt.Println("")
+	onlyDupes := dupes.GetOnlyDupes()
+	for _, dupe := range onlyDupes.D {
+		fmt.Printf("sha256:%s \n", dupe.Hash)
+		for _, path := range dupe.Paths {
+			fmt.Printf("    %s \n", path)
 		}
+		fmt.Println("")
 	}
+}
+
+// GetJSON returns the dupes struct as a json byte array
+func (dupes *Dupes) GetJSON() []byte {
+	b, _ := json.Marshal(dupes)
+	return b
+}
+
+// GetJSONOnlyDupes returns the dupes struct with only duplicates as a json byte array
+func (dupes *Dupes) GetJSONOnlyDupes() []byte {
+	onlyDupes := dupes.GetOnlyDupes()
+	b, _ := json.Marshal(onlyDupes)
+	return b
 }
 
 // Present prints all found files with hash and paths
