@@ -35,7 +35,7 @@ func main() {
 	case "all":
 		newD = comparedirs.All(*dir1, *dir2)
 	default:
-		panic(fmt.Errorf("unknown mode: %s", mode))
+		panic(fmt.Errorf("unknown mode: %s", *mode))
 	}
 	newD.Present(false)
 }
