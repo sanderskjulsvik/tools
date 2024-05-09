@@ -20,9 +20,10 @@ func OnlyInFirst(path1, path2 string) *common.Dupes {
 }
 
 // All returns all dupes in both directories
-func All(path1, path2 string) *common.Dupes {
-	d1 := producerconsumer.Run(path1)
-	d2 := producerconsumer.Run(path2)
-	d1.AppendDupes(d2)
-	return d1
+func All(paths ...string) *common.Dupes {
+	dupes := common.NewDupes()
+	for _, path := range paths {
+		dupes.AppendDupes(producerconsumer.Run(path))
+	}
+	return &dupes
 }

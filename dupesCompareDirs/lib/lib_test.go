@@ -30,11 +30,11 @@ func getFileMap() map[string]test.File {
 		},
 		{
 			Name:    "Group5",
-			Content: "Group3Content",
+			Content: "Group5Content",
 		},
 		{
 			Name:    "Group5",
-			Content: "Group3Content",
+			Content: "Group6Content",
 		},
 	}
 
@@ -87,7 +87,7 @@ func setupD1(prefix string) test.Folder {
 								Folders: []test.Folder{},
 							},
 							{
-								Name:  "Folder2",
+								Name:  "Folder1",
 								Files: files,
 								Folders: []test.Folder{
 									{
@@ -103,7 +103,7 @@ func setupD1(prefix string) test.Folder {
 			},
 		},
 	}
-	folder.Generate()
+	folder.Generate("")
 	return folder
 }
 
@@ -151,7 +151,7 @@ func setupD2(prefix string) test.Folder {
 								Folders: []test.Folder{},
 							},
 							{
-								Name:  "Folder2",
+								Name:  "Folder3",
 								Files: files,
 								Folders: []test.Folder{
 									{
@@ -167,7 +167,7 @@ func setupD2(prefix string) test.Folder {
 			},
 		},
 	}
-	folder.Generate()
+	folder.Generate("")
 	return folder
 }
 
@@ -197,10 +197,10 @@ func TestOnlyInboth(t *testing.T) {
 		t.Errorf("Expected 2 dupes, got %d", len(calcDupes.D))
 	}
 
-	allPaths := slices.Concat(d1.GetFullFilePaths(), d2.GetFullFilePaths())
+	allPaths := slices.Concat(d1.GetFullFilePaths(""), d2.GetFullFilePaths(""))
 	expectedPaths := []string{}
 	for _, path := range allPaths {
-		if filepath.Base(path) == "Group3" {
+		if filepath.Base(path) == "Group1" || filepath.Base(path) == "Group2" {
 			expectedPaths = append(expectedPaths, path)
 		}
 	}
@@ -209,8 +209,18 @@ func TestOnlyInboth(t *testing.T) {
 	for _, dupe := range calcDupes.D {
 		calcPaths = slices.Concat(calcPaths, dupe.Paths)
 	}
+	slices.Sort(calcPaths)
+	slices.Sort(expectedPaths)
 	if !slices.Equal(calcPaths, expectedPaths) {
-		t.Errorf("Expected %v, got %v", expectedPaths, calcPaths)
+		expectedPathsStr := ""
+		for _, path := range expectedPaths {
+			expectedPathsStr += path + "\n"
+		}
+		calculatedPathsStr := ""
+		for _, path := range calcPaths {
+			calculatedPathsStr += path + "\n"
+		}
+		t.Errorf("\nExpected:\n%v\nGot:\n%v", expectedPathsStr, calculatedPathsStr)
 	}
 }
 
@@ -229,10 +239,10 @@ func TestOnlyInFirst(t *testing.T) {
 		t.Errorf("Expected 1 dupes, got %d", len(calcDupes.D))
 	}
 
-	allPaths := slices.Concat(d1.GetFullFilePaths(), d2.GetFullFilePaths())
+	allPaths := slices.Concat(d1.GetFullFilePaths(""), d2.GetFullFilePaths(""))
 	expectedPaths := []string{}
 	for _, path := range allPaths {
-		if filepath.Base(path) == "Group1" || filepath.Base(path) == "Group2" {
+		if filepath.Base(path) == "Group3" {
 			expectedPaths = append(expectedPaths, path)
 		}
 	}
@@ -240,31 +250,37 @@ func TestOnlyInFirst(t *testing.T) {
 	for _, dupe := range calcDupes.D {
 		calcPaths = slices.Concat(calcPaths, dupe.Paths)
 	}
+	slices.Sort(calcPaths)
+	slices.Sort(expectedPaths)
 	if !slices.Equal(calcPaths, expectedPaths) {
 		t.Errorf("Expected %v, got %v", expectedPaths, calcPaths)
 	}
 }
 
 // All returns all dupes in both directories
-func TestAll(t *testing.T) {
-	rootPath := "test_all"
+func TestOnlyInBoth(t *testing.T) {
+	rootPath := "test_ony_in_both"
 	d1, d2 := setup(rootPath)
 	defer cleanUp(rootPath)
 
-	calcDupes := comparedirs.OnlyInboth(
+	calcDupes := comparedirs.All(
 		filepath.Join(rootPath, "d1"),
 		filepath.Join(rootPath, "d2"),
+		// Running d2 again to check for duplicated entries in path
+		filepath.Join(rootPath, "d2"),
 	)
-	if len(calcDupes.D) != 2 {
+	if len(calcDupes.D) != 5 {
 		t.Errorf("Expected 2 dupes, got %d", len(calcDupes.D))
 	}
 
-	allPaths := slices.Concat(d1.GetFullFilePaths(), d2.GetFullFilePaths())
+	allPaths := slices.Concat(d1.GetFullFilePaths(""), d2.GetFullFilePaths(""), d2.GetFullFilePaths(""))
 	calcPaths := []string{}
 	for _, dupe := range calcDupes.D {
 		calcPaths = slices.Concat(calcPaths, dupe.Paths)
 	}
+	slices.Sort(calcPaths)
+	slices.Sort(allPaths)
 	if !slices.Equal(calcPaths, allPaths) {
-		t.Errorf("Expected %v, got %v", allPaths, calcPaths)
+		t.Errorf("Expected %#v, got %#v", allPaths, calcPaths)
 	}
 }

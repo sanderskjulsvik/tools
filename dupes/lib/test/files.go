@@ -1,7 +1,6 @@
 package test
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
@@ -19,38 +18,38 @@ type File struct {
 	Hash    string
 }
 
-func (folder *Folder) Generate() error {
+func (folder *Folder) Generate(parents string) {
 	// Create the folder if it doesn't exist
-	os.MkdirAll(folder.Name, os.ModePerm)
-	err := os.Chdir(folder.Name)
-	if err != nil {
-		return fmt.Errorf("Error changing directory: %e", err)
-	}
+	os.MkdirAll(
+		filepath.Join(parents, folder.Name),
+		os.ModePerm,
+	)
 
 	// Create files in the folder
 	for _, file := range folder.Files {
-		filePath := filepath.Join(folder.Name, file.Name)
+		filePath := filepath.Join(parents, folder.Name, file.Name)
 		CreateFile(filePath, file.Content)
 	}
 
 	// Create child folders
 	for _, childFolder := range folder.Folders {
-		childFolder.Generate()
+		childFolder.Generate(
+			filepath.Join(parents, folder.Name),
+		)
 	}
-	return nil
 }
 
 func (folder *Folder) Clean() {
 	os.RemoveAll(folder.Name)
 }
 
-func (folder *Folder) GetFullFilePaths() []string {
+func (folder *Folder) GetFullFilePaths(parents string) []string {
 	paths := []string{}
 	for _, file := range folder.Files {
-		paths = append(paths, filepath.Join(folder.Name, file.Name))
+		paths = append(paths, filepath.Join(parents, folder.Name, file.Name))
 	}
 	for _, childFolder := range folder.Folders {
-		paths = slices.Concat(paths, childFolder.GetFullFilePaths())
+		paths = slices.Concat(paths, childFolder.GetFullFilePaths(filepath.Join(parents, folder.Name)))
 	}
 	return paths
 }

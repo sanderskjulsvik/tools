@@ -18,7 +18,6 @@ func getFiles(root string, filePaths chan<- string) {
 		}
 		// If regular file, send it to the channel
 		if info.Mode().IsRegular() {
-			fmt.Printf("Walked to %s\n", path)
 			filePaths <- path
 		}
 		return nil

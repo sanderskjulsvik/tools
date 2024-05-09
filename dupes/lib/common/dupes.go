@@ -1,6 +1,8 @@
 package common
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // Dupes is a struct for holding duplicate files
 type Dupes struct {
