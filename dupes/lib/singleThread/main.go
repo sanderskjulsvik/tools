@@ -8,8 +8,7 @@ import (
 	"github.com/sander-skjulsvik/tools/dupes/lib/common"
 )
 
-func Run(src string, presentOnlyDupes bool) *common.Dupes {
-
+func Run(src string) *common.Dupes {
 	dupes := &common.Dupes{
 		D: map[string]*common.Dupe{},
 		// ProgressBar: common.NewSchollzProgressbar(),
@@ -31,6 +30,5 @@ func Run(src string, presentOnlyDupes bool) *common.Dupes {
 	if err != nil {
 		log.Fatalf("Failed to walk src: %s, with err: %s", src, err.Error())
 	}
-	dupes.Present(presentOnlyDupes)
 	return dupes
 }

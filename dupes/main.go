@@ -6,12 +6,12 @@ import (
 	"os"
 	"strings"
 
+	"github.com/sander-skjulsvik/tools/dupes/lib/common"
 	producerConsumer "github.com/sander-skjulsvik/tools/dupes/lib/producerConsumer"
 	singleThread "github.com/sander-skjulsvik/tools/dupes/lib/singleThread"
 )
 
 func main() {
-
 	var (
 		method           string
 		path             string
@@ -43,10 +43,12 @@ func main() {
 }
 
 func Run(path, method string, presentOnlyDupes bool) {
+	var dupes *common.Dupes
 	switch {
 	case method == "single":
-		singleThread.Run(path, presentOnlyDupes)
+		dupes = singleThread.Run(path)
 	case method == "producerconsumer":
-		producerConsumer.Run(path, presentOnlyDupes)
+		dupes = producerConsumer.Run(path)
 	}
+	dupes.Present(presentOnlyDupes)
 }

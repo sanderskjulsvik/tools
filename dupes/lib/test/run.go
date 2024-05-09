@@ -17,7 +17,7 @@ func TestRun(path string, run common.Run, t *testing.T) {
 	// Setup the expected dupes
 	SetupExpectedDupes(path)
 	// Run the run function to find the dupes
-	calculatedDupes := run(path, false)
+	calculatedDupes := run(path)
 	// Check if the expected dupes are found
 	CheckExpectedDupes(GetExpectedDupes(path), *calculatedDupes, t)
 }
@@ -65,7 +65,7 @@ func TestRunManyFiles(path string, run common.Run, t *testing.T) {
 	GenerateNestedStructure(baseDir, numLevels, numFoldersPerLevel, numFilesPerFolder, content)
 
 	fmt.Println("Nested folder structure generated successfully.")
-	run(baseDir, false)
+	run(baseDir)
 	fmt.Printf("Done running! \n")
 }
 

@@ -130,7 +130,7 @@ func TestAppendFileTreadSafe(t *testing.T) {
 	{
 		workDir := baseDir + "single_file/"
 		os.MkdirAll(filepath.Clean(workDir), 0o755)
-		d := common.Dupes.New(common.Dupes{})
+		d := common.NewDupes()
 
 		path := workDir + "single_file"
 		lock := sync.Mutex{}
@@ -161,7 +161,7 @@ func TestAppendFileTreadSafe(t *testing.T) {
 	{
 		workDir := baseDir + "many_equal_files/"
 		os.MkdirAll(filepath.Clean(workDir), 0o755)
-		d := common.Dupes.New(common.Dupes{})
+		d := common.NewDupes()
 		n := 1000
 		for i := 0; i < n; i++ {
 			test.CreateFile(workDir+strconv.Itoa(i), "I am one of many files")
@@ -199,7 +199,7 @@ func TestAppendFileTreadSafe(t *testing.T) {
 	{
 		workDir := baseDir + "many_different_files/"
 		os.MkdirAll(filepath.Clean(workDir), 0o755)
-		d := common.Dupes.New(common.Dupes{})
+		d := common.NewDupes()
 		n := 1000
 		for i := 0; i < n; i++ {
 			test.CreateFile(workDir+strconv.Itoa(i), "I am one of many files: "+strconv.Itoa(i))
@@ -229,7 +229,7 @@ func TestAppendFileTreadSafe(t *testing.T) {
 		{
 			workDir := baseDir + "empty_files/"
 			os.MkdirAll(filepath.Clean(workDir), 0o755)
-			d := common.Dupes.New(common.Dupes{})
+			d := common.NewDupes()
 
 			lock := sync.Mutex{}
 			n := 10
