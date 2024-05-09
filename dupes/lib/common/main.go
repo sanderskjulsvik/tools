@@ -8,10 +8,15 @@ import (
 	"fmt"
 	"io"
 	"os"
+
+	"github.com/sander-skjulsvik/tools/dupes/lib/common"
 )
 
 // Run is the main function to run for consumers of this lib.
+// First arg is the path to the folder,
 type Run func(string) *Dupes
+
+type RunWithProgressBar func(string, *common.ProgressBar) *Dupes
 
 type File struct {
 	Path string

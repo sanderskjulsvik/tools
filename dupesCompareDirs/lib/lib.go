@@ -5,8 +5,8 @@ import (
 	"sync"
 
 	"github.com/sander-skjulsvik/tools/dupes/lib/common"
-	producerconsumer "github.com/sander-skjulsvik/tools/dupes/lib/producerConsumer"
 	"github.com/sander-skjulsvik/tools/dupes/lib/singleThread"
+	"github.com/sander-skjulsvik/tools/libs/files"
 )
 
 // OnlyInboth returns dupes that is present in both directories
@@ -40,21 +40,26 @@ func All(parallel bool, paths []string) *common.Dupes {
 }
 
 func runDupes(parralel bool, paths []string) []*common.Dupes {
-	var runFunc common.Run
-	switch parralel {
-	case true:
-		runFunc = producerconsumer.Run
-	case false:
-		runFunc = singleThread.Run
-	}
+	// var runFunc common.RunWithProgressBar
+	// switch parralel {
+	// // case true:
+	// // 	runFunc = producerconsumer.Run
+	// default:
+	// 	runFunc = singleThread.RunWithProgressBar
+	// }
 	wg := sync.WaitGroup{}
 	wg.Add(len(paths))
 	dupesCollection := make([]*common.Dupes, len(paths))
 
+	progressBars := common.NewUiProgressBars()
+	progressBars.Start()
+
 	for ind, path := range paths {
 		go func() {
 			log.Printf("Running dupes on: %s", path)
-			dupesCollection[ind] = runFunc(path)
+			n, _ := files.GetNumberOfFiles(path)
+			bar := progressBars.AddBar(n)
+			dupesCollection[ind] = singleThread.RunWithProgressBar(path, bar)
 			wg.Done()
 		}()
 	}
