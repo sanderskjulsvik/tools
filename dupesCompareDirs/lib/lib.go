@@ -49,12 +49,12 @@ func runDupes(parralel bool, paths []string) []*common.Dupes {
 	}
 	wg := sync.WaitGroup{}
 	wg.Add(len(paths))
-	log.Printf("Running dupes on: %v", paths)
 	dupesCollection := make([]*common.Dupes, len(paths))
 
 	for ind, path := range paths {
 		go func() {
-			dupesCollection[ind-1] = runFunc(path)
+			log.Printf("Running dupes on: %s", path)
+			dupesCollection[ind] = runFunc(path)
 			wg.Done()
 		}()
 	}
