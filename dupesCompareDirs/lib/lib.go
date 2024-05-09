@@ -2,6 +2,7 @@ package dupescomparedirs
 
 import (
 	"log"
+	"sync"
 
 	"github.com/sander-skjulsvik/tools/dupes/lib/common"
 	producerconsumer "github.com/sander-skjulsvik/tools/dupes/lib/producerConsumer"
@@ -10,27 +11,19 @@ import (
 
 // OnlyInboth returns dupes that is present in both directories
 func OnlyInboth(path1, path2 string, parallel bool) *common.Dupes {
-	var d1, d2 *common.Dupes
-	if parallel {
-		d1 = producerconsumer.Run(path1)
-		d2 = producerconsumer.Run(path2)
-	} else {
-		d1 = singleThread.Run(path1)
-		d2 = singleThread.Run(path2)
-	}
+	ds := runDupes(parallel, []string{path1, path2})
+	d1 := ds[0]
+	d2 := ds[1]
+
 	return d1.OnlyInBoth(d2)
 }
 
 // OnlyInFirst returns dupes that is only present in first directory
 func OnlyInFirst(path1, path2 string, parallel bool) *common.Dupes {
-	var d1, d2 *common.Dupes
-	if parallel {
-		d1 = producerconsumer.Run(path1)
-		d2 = producerconsumer.Run(path2)
-	} else {
-		d1 = singleThread.Run(path1)
-		d2 = singleThread.Run(path2)
-	}
+	ds := runDupes(parallel, []string{path1, path2})
+	d1 := ds[0]
+	d2 := ds[1]
+
 	log.Printf("Number of dupes in first directory: %d\n", len(d1.D))
 	log.Printf("Number of dupes in second directory: %d\n", len(d1.D))
 
@@ -38,16 +31,34 @@ func OnlyInFirst(path1, path2 string, parallel bool) *common.Dupes {
 }
 
 // All returns all dupes in both directories
-func All(parallel bool, paths ...string) *common.Dupes {
-	var dupes common.Dupes
-	if parallel {
-		for _, path := range paths {
-			dupes.AppendDupes(producerconsumer.Run(path))
-		}
-	} else {
-		for _, path := range paths {
-			dupes.AppendDupes(singleThread.Run(path))
-		}
+func All(parallel bool, paths []string) *common.Dupes {
+	dupes := common.NewDupes()
+	for _, dupe := range runDupes(parallel, paths) {
+		dupes.AppendDupes(dupe)
 	}
 	return &dupes
+}
+
+func runDupes(parralel bool, paths []string) []*common.Dupes {
+	var runFunc common.Run
+	switch parralel {
+	case true:
+		runFunc = producerconsumer.Run
+	case false:
+		runFunc = singleThread.Run
+	}
+	wg := sync.WaitGroup{}
+	wg.Add(len(paths))
+	log.Printf("Running dupes on: %v", paths)
+	dupesCollection := make([]*common.Dupes, len(paths))
+
+	for ind, path := range paths {
+		go func() {
+			dupesCollection[ind-1] = runFunc(path)
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+
+	return dupesCollection
 }
