@@ -29,13 +29,13 @@ func IsFile(f os.FileInfo) bool {
 func HashFile(path string) (string, error) {
 	f, err := os.Open(path)
 	if err != nil {
-		return "", fmt.Errorf("failed to open: %s: %w", path, err)
+		return "", fmt.Errorf("failed to open: %s: %w\n", path, err)
 	}
 	defer f.Close()
 
 	h := sha256.New()
 	if _, err := io.Copy(h, f); err != nil {
-		return "", fmt.Errorf("failed to hash: %s: %w", path, err)
+		return "", fmt.Errorf("failed to hash: %s: %w\n", path, err)
 	}
 
 	return HashString(h.Sum(nil)), nil

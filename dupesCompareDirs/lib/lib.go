@@ -1,6 +1,8 @@
 package dupescomparedirs
 
 import (
+	"log"
+
 	"github.com/sander-skjulsvik/tools/dupes/lib/common"
 	producerconsumer "github.com/sander-skjulsvik/tools/dupes/lib/producerConsumer"
 )
@@ -15,7 +17,10 @@ func OnlyInboth(path1, path2 string) *common.Dupes {
 // OnlyInFirst returns dupes that is only present in first directory
 func OnlyInFirst(path1, path2 string) *common.Dupes {
 	d1 := producerconsumer.Run(path1)
+	log.Printf("Number of dupes in first directory: %d\n", len(d1.D))
 	d2 := producerconsumer.Run(path2)
+	log.Printf("Number of dupes in second directory: %d\n", len(d1.D))
+
 	return d1.OnlyInSelf(d2)
 }
 
