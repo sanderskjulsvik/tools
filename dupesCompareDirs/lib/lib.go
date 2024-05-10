@@ -39,14 +39,7 @@ func All(parallel bool, paths []string) *common.Dupes {
 	return &dupes
 }
 
-func runDupes(parralel bool, paths []string) []*common.Dupes {
-	// var runFunc common.RunWithProgressBar
-	// switch parralel {
-	// // case true:
-	// // 	runFunc = producerconsumer.Run
-	// default:
-	// 	runFunc = singleThread.RunWithProgressBar
-	// }
+func runDupes(paths []string) []*common.Dupes {
 	wg := sync.WaitGroup{}
 	wg.Add(len(paths))
 	dupesCollection := make([]*common.Dupes, len(paths))
