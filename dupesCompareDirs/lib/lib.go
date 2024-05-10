@@ -7,44 +7,46 @@ import (
 	"github.com/sander-skjulsvik/tools/dupes/lib/common"
 	"github.com/sander-skjulsvik/tools/dupes/lib/singleThread"
 	"github.com/sander-skjulsvik/tools/libs/files"
+	"github.com/sander-skjulsvik/tools/libs/progressbar"
 )
 
 // OnlyInboth returns dupes that is present in both directories
-func OnlyInboth(path1, path2 string, parallel bool) *common.Dupes {
-	ds := runDupes(parallel, []string{path1, path2})
-	d1 := ds[0]
-	d2 := ds[1]
+func OnlyInAll(paths ...string) *common.Dupes {
+	ds := runDupes(paths...)
+	first := ds[0]
 
-	return d1.OnlyInBoth(d2)
+	for _, d := range ds {
+		first = first.OnlyInBoth(d)
+	}
+
+	return first
 }
 
 // OnlyInFirst returns dupes that is only present in first directory
-func OnlyInFirst(path1, path2 string, parallel bool) *common.Dupes {
-	ds := runDupes(parallel, []string{path1, path2})
-	d1 := ds[0]
-	d2 := ds[1]
-
-	log.Printf("Number of dupes in first directory: %d\n", len(d1.D))
-	log.Printf("Number of dupes in second directory: %d\n", len(d1.D))
-
-	return d1.OnlyInSelf(d2)
+func OnlyInFirst(paths ...string) *common.Dupes {
+	ds := runDupes(paths...)
+	first := ds[0]
+	for _, d := range ds {
+		first = first.OnlyInSelf(d)
+	}
+	return first
 }
 
 // All returns all dupes in both directories
-func All(parallel bool, paths []string) *common.Dupes {
+func All(paths ...string) *common.Dupes {
 	dupes := common.NewDupes()
-	for _, dupe := range runDupes(parallel, paths) {
+	for _, dupe := range runDupes(paths...) {
 		dupes.AppendDupes(dupe)
 	}
 	return &dupes
 }
 
-func runDupes(paths []string) []*common.Dupes {
+func runDupes(paths ...string) []*common.Dupes {
 	wg := sync.WaitGroup{}
 	wg.Add(len(paths))
 	dupesCollection := make([]*common.Dupes, len(paths))
 
-	progressBars := common.NewUiProgressBars()
+	progressBars := progressbar.NewUiProgressBars()
 	progressBars.Start()
 
 	for ind, path := range paths {
@@ -57,6 +59,7 @@ func runDupes(paths []string) []*common.Dupes {
 		}()
 	}
 	wg.Wait()
+	progressBars.Stop()
 
 	return dupesCollection
 }

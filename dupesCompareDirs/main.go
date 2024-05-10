@@ -14,7 +14,6 @@ func main() {
 	// Define command-line flags
 	mode := flag.String("mode", "all", "Mode to run in, modes: OnlyInboth, onlyInFirst, all")
 	outputJson := flag.Bool("json", false, "If set to true Output as json")
-	parallel := flag.Bool("fullParallel", false, "If the program is allowed to use multiple threads")
 	// Parse command-line flags
 	flag.Parse()
 
@@ -36,14 +35,14 @@ func main() {
 	switch *mode {
 	// Show dupes that is present in both directories
 	case "OnlyInboth":
-		newD = comparedirs.OnlyInboth(dir1, dir2, *parallel)
+		newD = comparedirs.OnlyInAll(dir1, dir2)
 	// Show dupes that is only present in first
 	case "onlyInFirst":
-		newD = comparedirs.OnlyInFirst(dir1, dir2, *parallel)
+		newD = comparedirs.OnlyInFirst(dir1, dir2)
 		log.Println("Only in first")
 		log.Printf("Number of dupes: %d\n", len(newD.D))
 	case "all":
-		newD = comparedirs.All(*parallel, []string{dir1, dir2})
+		newD = comparedirs.All(dir1, dir2)
 	default:
 		panic(fmt.Errorf("unknown mode: %s, supported modes: OnlyInboth, onlyInFirst, all ", *mode))
 	}

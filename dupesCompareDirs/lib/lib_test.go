@@ -189,10 +189,9 @@ func TestOnlyInboth(t *testing.T) {
 	d1, d2 := setup(rootPath)
 	defer cleanUp(rootPath)
 
-	calcDupes := comparedirs.OnlyInboth(
+	calcDupes := comparedirs.OnlyInAll(
 		filepath.Join(rootPath, "d1"),
 		filepath.Join(rootPath, "d2"),
-		true,
 	)
 	if len(calcDupes.D) != 2 {
 		t.Errorf("Expected 2 dupes, got %d", len(calcDupes.D))
@@ -234,7 +233,6 @@ func TestOnlyInFirst(t *testing.T) {
 	calcDupes := comparedirs.OnlyInFirst(
 		filepath.Join(rootPath, "d1"),
 		filepath.Join(rootPath, "d2"),
-		true,
 	)
 
 	if len(calcDupes.D) != 1 {
@@ -266,13 +264,10 @@ func TestOnlyInBoth(t *testing.T) {
 	defer cleanUp(rootPath)
 
 	calcDupes := comparedirs.All(
-		true,
-		[]string{
-			filepath.Join(rootPath, "d1"),
-			filepath.Join(rootPath, "d2"),
-			// Running d2 again to check for duplicated entries in path
-			filepath.Join(rootPath, "d2"),
-		},
+		filepath.Join(rootPath, "d1"),
+		filepath.Join(rootPath, "d2"),
+		// Running d2 again to check for duplicated entries in path
+		filepath.Join(rootPath, "d2"),
 	)
 	if len(calcDupes.D) != 5 {
 		t.Errorf("Expected 2 dupes, got %d", len(calcDupes.D))

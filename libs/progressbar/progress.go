@@ -1,44 +1,32 @@
-package common
+package progressbar
 
 import (
 	uiprogress "github.com/gosuri/uiprogress"
-	schollzProgressbar "github.com/schollz/progressbar/v3"
 )
+
+// ///////////////////////////////////
+// The interfaces
+// ///////////////////////////////////
 
 type ProgressBar interface {
 	Add(x int)
 	Add1()
+}
+
+type ProgressBars interface {
 	Start()
+	Stop()
+	AddBar(int) *UiProgressBar
 }
 
-type SchollzProgressbar struct {
-	bar *schollzProgressbar.ProgressBar
-}
-
-func NewSchollzProgressbar() *SchollzProgressbar {
-	return &SchollzProgressbar{
-		// -1 for infinite bar
-		bar: schollzProgressbar.Default(-1, "Files processed:"),
-	}
-}
-
-func (sp *SchollzProgressbar) Add1() {
-	sp.bar.Add(1)
-}
-
-func (sp *SchollzProgressbar) Add(n int) {
-	sp.bar.Add(n)
-}
+// ///////////////////////////////////
+// UiProgressBar implementation
+// ///////////////////////////////////
 
 type UiProgressBars struct {
 	bars []*UiProgressBar
 }
 
-type UiProgressBar struct {
-	bar *uiprogress.Bar
-}
-
-// Only for use with one bar
 func NewUiProgressBars() UiProgressBars {
 	return UiProgressBars{
 		bars: []*UiProgressBar{},
@@ -54,6 +42,14 @@ func (uiP *UiProgressBars) AddBar(total int) *UiProgressBar {
 
 func (uiP *UiProgressBars) Start() {
 	uiprogress.Start()
+}
+
+func (uiP *UiProgressBars) Stop() {
+	uiprogress.Stop()
+}
+
+type UiProgressBar struct {
+	bar *uiprogress.Bar
 }
 
 func (uiP *UiProgressBar) Add(x int) {

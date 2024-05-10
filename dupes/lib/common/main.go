@@ -9,14 +9,14 @@ import (
 	"io"
 	"os"
 
-	"github.com/sander-skjulsvik/tools/dupes/lib/common"
+	"github.com/sander-skjulsvik/tools/libs/progressbar"
 )
 
 // Run is the main function to run for consumers of this lib.
 // First arg is the path to the folder,
 type Run func(string) *Dupes
 
-type RunWithProgressBar func(string, *common.ProgressBar) *Dupes
+type RunWithProgressBar func(string, *progressbar.ProgressBar) *Dupes
 
 type File struct {
 	Path string

@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/sander-skjulsvik/tools/dupes/lib/common"
+	"github.com/sander-skjulsvik/tools/libs/progressbar"
 )
 
 func Run(src string) *common.Dupes {
@@ -33,7 +34,7 @@ func Run(src string) *common.Dupes {
 	return dupes
 }
 
-func RunWithProgressBar(src string, bar *common.ProgressBar) *common.Dupes {
+func RunWithProgressBar(src string, bar progressbar.ProgressBar) *common.Dupes {
 	dupes := &common.Dupes{
 		D: map[string]*common.Dupe{},
 		// ProgressBar: common.NewSchollzProgressbar(),
@@ -46,7 +47,7 @@ func RunWithProgressBar(src string, bar *common.ProgressBar) *common.Dupes {
 		}
 
 		dupes, err = dupes.Append(path)
-		bar.
+		bar.Add1()
 		if err != nil {
 			return nil
 		}
