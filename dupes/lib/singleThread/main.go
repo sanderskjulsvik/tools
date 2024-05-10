@@ -47,7 +47,7 @@ func RunWithProgressBar(src string, bar progressbar.ProgressBar) *common.Dupes {
 		}
 
 		dupes, err = dupes.Append(path)
-		bar.Add1()
+		bar.Add(int(info.Size() / 1e6))
 		if err != nil {
 			return nil
 		}

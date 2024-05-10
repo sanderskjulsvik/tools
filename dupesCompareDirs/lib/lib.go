@@ -52,8 +52,8 @@ func runDupes(paths ...string) []*common.Dupes {
 	for ind, path := range paths {
 		go func() {
 			log.Printf("Running dupes on: %s", path)
-			n, _ := files.GetNumberOfFiles(path)
-			bar := progressBars.AddBar(n)
+			n, _ := files.GetNumbeSizeOfDirMb(path)
+			bar := progressBars.AddBar(path, n)
 			dupesCollection[ind] = singleThread.RunWithProgressBar(path, bar)
 			wg.Done()
 		}()

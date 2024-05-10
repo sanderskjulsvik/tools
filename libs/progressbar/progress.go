@@ -1,6 +1,8 @@
 package progressbar
 
 import (
+	"fmt"
+
 	uiprogress "github.com/gosuri/uiprogress"
 )
 
@@ -34,9 +36,11 @@ func NewUiProgressBars() UiProgressBars {
 }
 
 // AddBar adds a bar to the progress bar instance and returns the bar index
-func (uiP *UiProgressBars) AddBar(total int) *UiProgressBar {
+func (uiP *UiProgressBars) AddBar(name string, total int) *UiProgressBar {
 	return &UiProgressBar{
-		bar: uiprogress.AddBar(total).AppendCompleted().PrependElapsed(),
+		bar: uiprogress.AddBar(total).AppendCompleted().PrependElapsed().PrependFunc(func(b *uiprogress.Bar) string {
+			return fmt.Sprintf("%s \n    (%d/%d) Mb", name, b.Current(), total)
+		}),
 	}
 }
 
