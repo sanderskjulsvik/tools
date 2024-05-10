@@ -39,7 +39,7 @@ func NewUiProgressBars() UiProgressBars {
 func (uiP *UiProgressBars) AddBar(name string, total int) *UiProgressBar {
 	return &UiProgressBar{
 		bar: uiprogress.AddBar(total).AppendCompleted().PrependElapsed().PrependFunc(func(b *uiprogress.Bar) string {
-			return fmt.Sprintf("%s \n    (%d/%d) Mb", name, b.Current(), total)
+			return fmt.Sprintf("%s \n    (%d/%d)Mb\t", name, b.Current(), total)
 		}),
 	}
 }
