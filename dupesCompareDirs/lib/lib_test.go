@@ -189,7 +189,7 @@ func TestOnlyInboth(t *testing.T) {
 	d1, d2 := setup(rootPath)
 	defer cleanUp(rootPath)
 
-	calcDupes := comparedirs.OnlyInboth(
+	calcDupes := comparedirs.OnlyInAll(
 		filepath.Join(rootPath, "d1"),
 		filepath.Join(rootPath, "d2"),
 	)

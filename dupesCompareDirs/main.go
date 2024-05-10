@@ -17,6 +17,10 @@ func main() {
 	// Parse command-line flags
 	flag.Parse()
 
+	log.Printf("Number in argvs: %d\n", len(os.Args))
+	if len(os.Args) < 3 {
+		panic(fmt.Errorf("please provide to folders"))
+	}
 	dir1 := os.Args[len(os.Args)-2]
 	dir2 := os.Args[len(os.Args)-1]
 
@@ -31,7 +35,7 @@ func main() {
 	switch *mode {
 	// Show dupes that is present in both directories
 	case "OnlyInboth":
-		newD = comparedirs.OnlyInboth(dir1, dir2)
+		newD = comparedirs.OnlyInAll(dir1, dir2)
 	// Show dupes that is only present in first
 	case "onlyInFirst":
 		newD = comparedirs.OnlyInFirst(dir1, dir2)
