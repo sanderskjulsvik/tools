@@ -177,7 +177,7 @@ func setup(rootPath string) (progressbar.ProgressBarCollectionMoc, test.Folder, 
 	p2 := filepath.Join(rootPath, "d2")
 	d1 := setupD1(p1)
 	d2 := setupD2(p2)
-	pbs := progressbar.NewMocProgressBars()
+	pbs := progressbar.NewMocProgressBarCollection()
 	return pbs, d1, d2
 }
 
@@ -188,11 +188,11 @@ func cleanUp(rootPath string) {
 // OnlyInboth returns dupes that is present in both directories
 func TestOnlyInboth(t *testing.T) {
 	rootPath := "test_only_in_both"
-	pbs, d1, d2 := setup(rootPath)
+	pbCollection, d1, d2 := setup(rootPath)
 	defer cleanUp(rootPath)
 
 	calcDupes := comparedirs.OnlyInAll(
-		&pbs,
+		pbCollection,
 		filepath.Join(rootPath, "d1"),
 		filepath.Join(rootPath, "d2"),
 	)
@@ -230,10 +230,11 @@ func TestOnlyInboth(t *testing.T) {
 // OnlyInFirst returns dupes that is only present in first directory
 func TestOnlyInFirst(t *testing.T) {
 	rootPath := "test_only_in_first"
-	d1, d2 := setup(rootPath)
+	pbCollection, d1, d2 := setup(rootPath)
 	defer cleanUp(rootPath)
 
 	calcDupes := comparedirs.OnlyInFirst(
+		pbCollection,
 		filepath.Join(rootPath, "d1"),
 		filepath.Join(rootPath, "d2"),
 	)
@@ -263,10 +264,11 @@ func TestOnlyInFirst(t *testing.T) {
 // All returns all dupes in both directories
 func TestOnlyInBoth(t *testing.T) {
 	rootPath := "test_ony_in_both"
-	d1, d2 := setup(rootPath)
+	pbCollection, d1, d2 := setup(rootPath)
 	defer cleanUp(rootPath)
 
 	calcDupes := comparedirs.All(
+		pbCollection,
 		filepath.Join(rootPath, "d1"),
 		filepath.Join(rootPath, "d2"),
 		// Running d2 again to check for duplicated entries in path

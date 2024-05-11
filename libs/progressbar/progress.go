@@ -19,7 +19,7 @@ type ProgressBarCollection interface {
 	Start()
 	Stop()
 	// header, size
-	AddBar(string, int) *ProgressBar
+	AddBar(string, int) ProgressBar
 }
 
 // ///////////////////////////////////
@@ -27,35 +27,36 @@ type ProgressBarCollection interface {
 // ///////////////////////////////////
 
 type ProgressBarCollectionMoc struct {
+	bars *ProgressBarsMoc
+}
+
+type ProgressBarsMoc struct {
 	bars []*ProgressBarMoc
 }
 
-func NewMocProgressBars() ProgressBarCollectionMoc {
+type ProgressBarMoc struct {
+}
+
+func NewMocProgressBarCollection() ProgressBarCollectionMoc {
 	return ProgressBarCollectionMoc{
-		bars: []*ProgressBarMoc{},
+		bars: &ProgressBarsMoc{},
 	}
 }
 
-func (pbs *ProgressBarCollectionMoc) AddBar(name string, total int) *ProgressBarMoc {
-	newBar := ProgressBarMoc{}
-	pbs.bars = append(pbs.bars, &newBar)
-	return &newBar
+func (pbs ProgressBarCollectionMoc) AddBar(name string, total int) ProgressBar {
+	return ProgressBarMoc{}
 }
 
-func (pbs *ProgressBarCollectionMoc) Start() {
+func (pbs ProgressBarCollectionMoc) Start() {
 }
 
-func (pbs *ProgressBarCollectionMoc) Stop() {
+func (pbs ProgressBarCollectionMoc) Stop() {
 }
 
-type ProgressBarMoc struct {
-	bar *uiprogress.Bar
+func (pb ProgressBarMoc) Add(x int) {
 }
 
-func (pb *ProgressBarMoc) Add(x int) {
-}
-
-func (pb *ProgressBarMoc) Add1() {
+func (pb ProgressBarMoc) Add1() {
 }
 
 // ///////////////////////////////////
@@ -63,45 +64,49 @@ func (pb *ProgressBarMoc) Add1() {
 // ///////////////////////////////////
 
 type UiPCollection struct {
-	bars       []*UiProgressBar
+	bars       *uiProgressBars
 	uiprogress *uiprogress.Progress
 }
 
-func NewUiProgressBars() UiPCollection {
-	return UiPCollection{
-		bars: []*UiProgressBar{},
-	}
-}
-
-// AddBar adds a bar to the progress bar instance and returns the bar index
-func (uiP *UiPCollection) AddBar(name string, total int) UiProgressBar {
-	newBar := UiProgressBar{
-		bar: uiP.uiprogress.AddBar(total).AppendCompleted().PrependElapsed().PrependFunc(func(b *uiprogress.Bar) string {
-			return fmt.Sprintf("%s \n    (%d/%d)Mb\t", name, b.Current(), total)
-		}),
-	}
-	uiP.bars = append(uiP.bars, &newBar)
-	return newBar
-}
-
-func (uiP *UiPCollection) Start() {
-	uiP.uiprogress.Start()
-}
-
-func (uiP *UiPCollection) Stop() {
-	uiP.uiprogress.Stop()
+type uiProgressBars struct {
+	bars []*UiProgressBar
 }
 
 type UiProgressBar struct {
 	bar *uiprogress.Bar
 }
 
-func (uiP *UiProgressBar) Add(x int) {
+func NewUiPCollection() UiPCollection {
+	return UiPCollection{
+		bars: &uiProgressBars{},
+	}
+}
+
+// AddBar adds a bar to the progress bar instance and returns the bar index
+func (uiP UiPCollection) AddBar(name string, total int) ProgressBar {
+	newBar := UiProgressBar{
+		bar: uiP.uiprogress.AddBar(total).AppendCompleted().PrependElapsed().PrependFunc(func(b *uiprogress.Bar) string {
+			return fmt.Sprintf("%s \n    (%d/%d)Mb\t", name, b.Current(), total)
+		}),
+	}
+	uiP.bars.bars = append(uiP.bars.bars, &newBar)
+	return newBar
+}
+
+func (uiP UiPCollection) Start() {
+	uiP.uiprogress.Start()
+}
+
+func (uiP UiPCollection) Stop() {
+	uiP.uiprogress.Stop()
+}
+
+func (uiP UiProgressBar) Add(x int) {
 	for i := 0; i < x; i++ {
 		uiP.bar.Incr()
 	}
 }
 
-func (uiP *UiProgressBar) Add1() {
+func (uiP UiProgressBar) Add1() {
 	uiP.bar.Incr()
 }
