@@ -172,7 +172,7 @@ func setupD2(prefix string) test.Folder {
 	return folder
 }
 
-func setup(rootPath string) (progressbar.ProgressBarsMoc, test.Folder, test.Folder) {
+func setup(rootPath string) (progressbar.ProgressBarCollectionMoc, test.Folder, test.Folder) {
 	p1 := filepath.Join(rootPath, "d1")
 	p2 := filepath.Join(rootPath, "d2")
 	d1 := setupD1(p1)

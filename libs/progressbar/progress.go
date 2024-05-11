@@ -15,7 +15,7 @@ type ProgressBar interface {
 	Add1()
 }
 
-type ProgressBars interface {
+type ProgressBarCollection interface {
 	Start()
 	Stop()
 	// header, size
@@ -26,26 +26,26 @@ type ProgressBars interface {
 // Moc implementation
 // ///////////////////////////////////
 
-type ProgressBarsMoc struct {
+type ProgressBarCollectionMoc struct {
 	bars []*ProgressBarMoc
 }
 
-func NewMocProgressBars() ProgressBarsMoc {
-	return ProgressBarsMoc{
+func NewMocProgressBars() ProgressBarCollectionMoc {
+	return ProgressBarCollectionMoc{
 		bars: []*ProgressBarMoc{},
 	}
 }
 
-func (pbs *ProgressBarsMoc) AddBar(name string, total int) *ProgressBarMoc {
+func (pbs *ProgressBarCollectionMoc) AddBar(name string, total int) *ProgressBarMoc {
 	newBar := ProgressBarMoc{}
 	pbs.bars = append(pbs.bars, &newBar)
 	return &newBar
 }
 
-func (pbs *ProgressBarsMoc) Start() {
+func (pbs *ProgressBarCollectionMoc) Start() {
 }
 
-func (pbs *ProgressBarsMoc) Stop() {
+func (pbs *ProgressBarCollectionMoc) Stop() {
 }
 
 type ProgressBarMoc struct {
@@ -62,33 +62,33 @@ func (pb *ProgressBarMoc) Add1() {
 // UiProgressBar implementation
 // ///////////////////////////////////
 
-type UiProgressBars struct {
+type UiPCollection struct {
 	bars       []*UiProgressBar
 	uiprogress *uiprogress.Progress
 }
 
-func NewUiProgressBars() UiProgressBars {
-	return UiProgressBars{
+func NewUiProgressBars() UiPCollection {
+	return UiPCollection{
 		bars: []*UiProgressBar{},
 	}
 }
 
 // AddBar adds a bar to the progress bar instance and returns the bar index
-func (uiP *UiProgressBars) AddBar(name string, total int) *UiProgressBar {
+func (uiP *UiPCollection) AddBar(name string, total int) UiProgressBar {
 	newBar := UiProgressBar{
 		bar: uiP.uiprogress.AddBar(total).AppendCompleted().PrependElapsed().PrependFunc(func(b *uiprogress.Bar) string {
 			return fmt.Sprintf("%s \n    (%d/%d)Mb\t", name, b.Current(), total)
 		}),
 	}
 	uiP.bars = append(uiP.bars, &newBar)
-	return &newBar
+	return newBar
 }
 
-func (uiP *UiProgressBars) Start() {
+func (uiP *UiPCollection) Start() {
 	uiP.uiprogress.Start()
 }
 
-func (uiP *UiProgressBars) Stop() {
+func (uiP *UiPCollection) Stop() {
 	uiP.uiprogress.Stop()
 }
 
