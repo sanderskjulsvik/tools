@@ -8,6 +8,7 @@ import (
 
 	"github.com/sander-skjulsvik/tools/dupes/lib/test"
 	comparedirs "github.com/sander-skjulsvik/tools/dupesCompareDirs/lib"
+	"github.com/sander-skjulsvik/tools/libs/progressbar"
 )
 
 func getFileMap() map[string]test.File {
@@ -171,12 +172,13 @@ func setupD2(prefix string) test.Folder {
 	return folder
 }
 
-func setup(rootPath string) (test.Folder, test.Folder) {
+func setup(rootPath string) (progressbar.ProgressBarsMoc, test.Folder, test.Folder) {
 	p1 := filepath.Join(rootPath, "d1")
 	p2 := filepath.Join(rootPath, "d2")
 	d1 := setupD1(p1)
 	d2 := setupD2(p2)
-	return d1, d2
+	pbs := progressbar.NewMocProgressBars()
+	return pbs, d1, d2
 }
 
 func cleanUp(rootPath string) {
@@ -186,10 +188,11 @@ func cleanUp(rootPath string) {
 // OnlyInboth returns dupes that is present in both directories
 func TestOnlyInboth(t *testing.T) {
 	rootPath := "test_only_in_both"
-	d1, d2 := setup(rootPath)
+	pbs, d1, d2 := setup(rootPath)
 	defer cleanUp(rootPath)
 
 	calcDupes := comparedirs.OnlyInAll(
+		&pbs,
 		filepath.Join(rootPath, "d1"),
 		filepath.Join(rootPath, "d2"),
 	)

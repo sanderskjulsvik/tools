@@ -11,8 +11,8 @@ import (
 )
 
 // OnlyInboth returns dupes that is present in both directories
-func OnlyInAll(paths ...string) *common.Dupes {
-	ds := runDupes(paths...)
+func OnlyInAll(progressBars progressbar.ProgressBars, paths ...string) *common.Dupes {
+	ds := runDupes(progressBars, paths...)
 	first := ds[0]
 
 	for _, d := range ds {
@@ -23,8 +23,8 @@ func OnlyInAll(paths ...string) *common.Dupes {
 }
 
 // OnlyInFirst returns dupes that is only present in first directory
-func OnlyInFirst(paths ...string) *common.Dupes {
-	ds := runDupes(paths...)
+func OnlyInFirst(progressBars progressbar.ProgressBars, paths ...string) *common.Dupes {
+	ds := runDupes(progressBars, paths...)
 	first := ds[0]
 	for _, d := range ds {
 		first = first.OnlyInSelf(d)
@@ -33,20 +33,19 @@ func OnlyInFirst(paths ...string) *common.Dupes {
 }
 
 // All returns all dupes in both directories
-func All(paths ...string) *common.Dupes {
+func All(progressBars progressbar.ProgressBars, paths ...string) *common.Dupes {
 	dupes := common.NewDupes()
-	for _, dupe := range runDupes(paths...) {
+	for _, dupe := range runDupes(progressBars, paths...) {
 		dupes.AppendDupes(dupe)
 	}
 	return &dupes
 }
 
-func runDupes(paths ...string) []*common.Dupes {
+func runDupes(progressBars progressbar.ProgressBars, paths ...string) []*common.Dupes {
 	wg := sync.WaitGroup{}
 	wg.Add(len(paths))
 	dupesCollection := make([]*common.Dupes, len(paths))
 
-	progressBars := progressbar.NewUiProgressBars()
 	progressBars.Start()
 
 	for ind, path := range paths {

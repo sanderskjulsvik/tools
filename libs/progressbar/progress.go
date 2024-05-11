@@ -18,7 +18,44 @@ type ProgressBar interface {
 type ProgressBars interface {
 	Start()
 	Stop()
-	AddBar(int) *UiProgressBar
+	// header, size
+	AddBar(string, int) *ProgressBar
+}
+
+// ///////////////////////////////////
+// Moc implementation
+// ///////////////////////////////////
+
+type ProgressBarsMoc struct {
+	bars []*ProgressBarMoc
+}
+
+func NewMocProgressBars() ProgressBarsMoc {
+	return ProgressBarsMoc{
+		bars: []*ProgressBarMoc{},
+	}
+}
+
+func (pbs *ProgressBarsMoc) AddBar(name string, total int) *ProgressBarMoc {
+	newBar := ProgressBarMoc{}
+	pbs.bars = append(pbs.bars, &newBar)
+	return &newBar
+}
+
+func (pbs *ProgressBarsMoc) Start() {
+}
+
+func (pbs *ProgressBarsMoc) Stop() {
+}
+
+type ProgressBarMoc struct {
+	bar *uiprogress.Bar
+}
+
+func (pb *ProgressBarMoc) Add(x int) {
+}
+
+func (pb *ProgressBarMoc) Add1() {
 }
 
 // ///////////////////////////////////

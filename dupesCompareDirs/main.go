@@ -8,6 +8,7 @@ import (
 
 	"github.com/sander-skjulsvik/tools/dupes/lib/common"
 	comparedirs "github.com/sander-skjulsvik/tools/dupesCompareDirs/lib"
+	"github.com/sander-skjulsvik/tools/libs/progressbar"
 )
 
 func main() {
@@ -31,18 +32,21 @@ func main() {
 	}
 	log.Printf("Comparing directories: %s and %s\n", dir1, dir2)
 
+	// Progress bar
+	pbs := progressbar.NewUiProgressBars()
+
 	var newD *common.Dupes
 	switch *mode {
 	// Show dupes that is present in both directories
 	case "OnlyInboth":
-		newD = comparedirs.OnlyInAll(dir1, dir2)
+		newD = comparedirs.OnlyInAll(&pbs, dir1, dir2)
 	// Show dupes that is only present in first
 	case "onlyInFirst":
-		newD = comparedirs.OnlyInFirst(dir1, dir2)
+		newD = comparedirs.OnlyInFirst(&pbs, dir1, dir2)
 		log.Println("Only in first")
 		log.Printf("Number of dupes: %d\n", len(newD.D))
 	case "all":
-		newD = comparedirs.All(dir1, dir2)
+		newD = comparedirs.All(&pbs, dir1, dir2)
 	default:
 		panic(fmt.Errorf("unknown mode: %s, supported modes: OnlyInboth, onlyInFirst, all ", *mode))
 	}
