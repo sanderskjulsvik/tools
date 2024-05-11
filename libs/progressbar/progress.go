@@ -26,7 +26,8 @@ type ProgressBars interface {
 // ///////////////////////////////////
 
 type UiProgressBars struct {
-	bars []*UiProgressBar
+	bars       []*UiProgressBar
+	uiprogress *uiprogress.Progress
 }
 
 func NewUiProgressBars() UiProgressBars {
@@ -37,19 +38,21 @@ func NewUiProgressBars() UiProgressBars {
 
 // AddBar adds a bar to the progress bar instance and returns the bar index
 func (uiP *UiProgressBars) AddBar(name string, total int) *UiProgressBar {
-	return &UiProgressBar{
-		bar: uiprogress.AddBar(total).AppendCompleted().PrependElapsed().PrependFunc(func(b *uiprogress.Bar) string {
+	newBar := UiProgressBar{
+		bar: uiP.uiprogress.AddBar(total).AppendCompleted().PrependElapsed().PrependFunc(func(b *uiprogress.Bar) string {
 			return fmt.Sprintf("%s \n    (%d/%d)Mb\t", name, b.Current(), total)
 		}),
 	}
+	uiP.bars = append(uiP.bars, &newBar)
+	return &newBar
 }
 
 func (uiP *UiProgressBars) Start() {
-	uiprogress.Start()
+	uiP.uiprogress.Start()
 }
 
 func (uiP *UiProgressBars) Stop() {
-	uiprogress.Stop()
+	uiP.uiprogress.Stop()
 }
 
 type UiProgressBar struct {

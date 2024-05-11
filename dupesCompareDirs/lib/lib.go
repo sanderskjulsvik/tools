@@ -59,7 +59,8 @@ func runDupes(paths ...string) []*common.Dupes {
 		}()
 	}
 	wg.Wait()
-	progressBars.Stop()
+	// progressBars.Stop()
+	// time.Sleep(10 * time.Second)
 
 	return dupesCollection
 }
