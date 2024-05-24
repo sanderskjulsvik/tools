@@ -10,7 +10,7 @@ import (
 	"github.com/sander-skjulsvik/tools/libs/progressbar"
 )
 
-// OnlyInboth returns dupes that is present in both directories
+// OnlyInboth returns dupes that is present in all directories
 func OnlyInAll(progressBars progressbar.ProgressBarCollection, paths ...string) *common.Dupes {
 	ds := runDupes(progressBars, paths...)
 	first := ds[0]
@@ -26,13 +26,13 @@ func OnlyInAll(progressBars progressbar.ProgressBarCollection, paths ...string) 
 func OnlyInFirst(progressBarCollection progressbar.ProgressBarCollection, paths ...string) *common.Dupes {
 	ds := runDupes(progressBarCollection, paths...)
 	first := ds[0]
-	for _, d := range ds {
+	for _, d := range ds[1:] {
 		first = first.OnlyInSelf(d)
 	}
 	return first
 }
 
-// All returns all dupes in both directories
+// All returns all dupes in all directories
 func All(progressBarCollection progressbar.ProgressBarCollection, paths ...string) *common.Dupes {
 	dupes := common.NewDupes()
 	for _, dupe := range runDupes(progressBarCollection, paths...) {
