@@ -50,15 +50,15 @@ func runDupes(progressBarCollection progressbar.ProgressBarCollection, paths ...
 
 	for ind, path := range paths {
 		go func() {
+			defer wg.Done()
 			log.Printf("Running dupes on: %s", path)
 			n, _ := files.GetNumbeSizeOfDirMb(path)
 			bar := progressBarCollection.AddBar(path, n)
 			dupesCollection[ind] = singleThread.RunWithProgressBar(path, bar)
-			wg.Done()
 		}()
 	}
 	wg.Wait()
-	progressBarCollection.Stop()
+	// progressBarCollection.Stop()
 	// time.Sleep(10 * time.Second)
 
 	return dupesCollection

@@ -2,6 +2,7 @@ package progressbar
 
 import (
 	"fmt"
+	"time"
 
 	uiprogress "github.com/gosuri/uiprogress"
 )
@@ -64,8 +65,8 @@ func (pb ProgressBarMoc) Add1() {
 // ///////////////////////////////////
 
 type UiPCollection struct {
-	bars       *uiProgressBars
-	uiprogress *uiprogress.Progress
+	bars     *uiProgressBars
+	progress *uiprogress.Progress
 }
 
 type uiProgressBars struct {
@@ -77,15 +78,18 @@ type UiProgressBar struct {
 }
 
 func NewUiPCollection() UiPCollection {
+	progress := uiprogress.New()
+	progress.SetRefreshInterval(time.Millisecond * 10)
 	return UiPCollection{
-		bars: &uiProgressBars{},
+		progress: progress,
+		bars:     &uiProgressBars{},
 	}
 }
 
 // AddBar adds a bar to the progress bar instance and returns the bar index
 func (uiP UiPCollection) AddBar(name string, total int) ProgressBar {
 	newBar := UiProgressBar{
-		bar: uiP.uiprogress.AddBar(total).AppendCompleted().PrependElapsed().PrependFunc(func(b *uiprogress.Bar) string {
+		bar: uiP.progress.AddBar(total).AppendCompleted().PrependElapsed().PrependFunc(func(b *uiprogress.Bar) string {
 			return fmt.Sprintf("%s \n    (%d/%d)Mb\t", name, b.Current(), total)
 		}),
 	}
@@ -94,11 +98,11 @@ func (uiP UiPCollection) AddBar(name string, total int) ProgressBar {
 }
 
 func (uiP UiPCollection) Start() {
-	uiP.uiprogress.Start()
+	uiP.progress.Start()
 }
 
 func (uiP UiPCollection) Stop() {
-	uiP.uiprogress.Stop()
+	uiP.progress.Stop()
 }
 
 func (uiP UiProgressBar) Add(x int) {
