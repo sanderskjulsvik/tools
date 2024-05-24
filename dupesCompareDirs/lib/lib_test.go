@@ -237,6 +237,7 @@ func TestOnlyInFirst(t *testing.T) {
 		pbCollection,
 		filepath.Join(rootPath, "d1"),
 		filepath.Join(rootPath, "d2"),
+		filepath.Join(rootPath, "d2"),
 	)
 
 	if len(calcDupes.D) != 1 {
