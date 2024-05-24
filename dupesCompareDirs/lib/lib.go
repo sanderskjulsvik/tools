@@ -1,6 +1,7 @@
 package dupescomparedirs
 
 import (
+	"fmt"
 	"log"
 	"sync"
 
@@ -52,14 +53,16 @@ func runDupes(progressBarCollection progressbar.ProgressBarCollection, paths ...
 		go func() {
 			defer wg.Done()
 			log.Printf("Running dupes on: %s", path)
-			n, _ := files.GetNumbeSizeOfDirMb(path)
+			n, err := files.GetNumbeSizeOfDirMb(path)
+			if err != nil {
+				panic(fmt.Errorf("unable to get size of directory: %w", err))
+			}
 			bar := progressBarCollection.AddBar(path, n)
 			dupesCollection[ind] = singleThread.RunWithProgressBar(path, bar)
 		}()
 	}
 	wg.Wait()
-	// progressBarCollection.Stop()
-	// time.Sleep(10 * time.Second)
+	progressBarCollection.Stop()
 
 	return dupesCollection
 }
