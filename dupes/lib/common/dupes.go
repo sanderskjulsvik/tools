@@ -94,7 +94,10 @@ func (dupes *Dupes) PrintOnlyDupes() {
 
 // GetJSON returns the dupes struct as a json byte array
 func (dupes *Dupes) GetJSON() []byte {
-	b, _ := json.Marshal(dupes)
+	b, err := json.Marshal(dupes)
+	if err != nil {
+		panic(fmt.Errorf("unable to convert dupes to json, this is a bug: %w", err))
+	}
 	return b
 }
 

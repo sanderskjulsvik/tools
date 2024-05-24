@@ -32,6 +32,9 @@ func GetNumbeSizeOfDirMb(path string) (int, error) {
 	err := filepath.Walk(
 		path,
 		func(path string, info fs.FileInfo, err error) error {
+			if info == nil {
+				panic(fmt.Errorf("GetNumbeSizeOfDirMb: fileinfo is nil for: %s", path))
+			}
 			isFile := common.IsFile(info)
 			if !isFile {
 				return nil

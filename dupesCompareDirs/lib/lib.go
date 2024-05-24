@@ -1,6 +1,7 @@
 package dupescomparedirs
 
 import (
+	"fmt"
 	"log"
 	"sync"
 
@@ -10,9 +11,9 @@ import (
 	"github.com/sander-skjulsvik/tools/libs/progressbar"
 )
 
-// OnlyInboth returns dupes that is present in both directories
-func OnlyInAll(paths ...string) *common.Dupes {
-	ds := runDupes(paths...)
+// OnlyInboth returns dupes that is present in all directories
+func OnlyInAll(progressBars progressbar.ProgressBarCollection, paths ...string) *common.Dupes {
+	ds := runDupes(progressBars, paths...)
 	first := ds[0]
 
 	for _, d := range ds {
@@ -23,44 +24,45 @@ func OnlyInAll(paths ...string) *common.Dupes {
 }
 
 // OnlyInFirst returns dupes that is only present in first directory
-func OnlyInFirst(paths ...string) *common.Dupes {
-	ds := runDupes(paths...)
+func OnlyInFirst(progressBarCollection progressbar.ProgressBarCollection, paths ...string) *common.Dupes {
+	ds := runDupes(progressBarCollection, paths...)
 	first := ds[0]
-	for _, d := range ds {
+	for _, d := range ds[1:] {
 		first = first.OnlyInSelf(d)
 	}
 	return first
 }
 
-// All returns all dupes in both directories
-func All(paths ...string) *common.Dupes {
+// All returns all dupes in all directories
+func All(progressBarCollection progressbar.ProgressBarCollection, paths ...string) *common.Dupes {
 	dupes := common.NewDupes()
-	for _, dupe := range runDupes(paths...) {
+	for _, dupe := range runDupes(progressBarCollection, paths...) {
 		dupes.AppendDupes(dupe)
 	}
 	return &dupes
 }
 
-func runDupes(paths ...string) []*common.Dupes {
+func runDupes(progressBarCollection progressbar.ProgressBarCollection, paths ...string) []*common.Dupes {
 	wg := sync.WaitGroup{}
 	wg.Add(len(paths))
 	dupesCollection := make([]*common.Dupes, len(paths))
 
-	progressBars := progressbar.NewUiProgressBars()
-	progressBars.Start()
+	progressBarCollection.Start()
 
 	for ind, path := range paths {
 		go func() {
+			defer wg.Done()
 			log.Printf("Running dupes on: %s", path)
-			n, _ := files.GetNumbeSizeOfDirMb(path)
-			bar := progressBars.AddBar(path, n)
+			n, err := files.GetNumbeSizeOfDirMb(path)
+			if err != nil {
+				panic(fmt.Errorf("unable to get size of directory: %w", err))
+			}
+			bar := progressBarCollection.AddBar(path, n)
 			dupesCollection[ind] = singleThread.RunWithProgressBar(path, bar)
-			wg.Done()
 		}()
 	}
 	wg.Wait()
-	// progressBars.Stop()
-	// time.Sleep(10 * time.Second)
+	progressBarCollection.Stop()
 
 	return dupesCollection
 }
