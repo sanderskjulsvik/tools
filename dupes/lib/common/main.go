@@ -28,6 +28,9 @@ func HashString(b []byte) string {
 }
 
 func IsFile(f os.FileInfo) bool {
+	if f == nil {
+		panic(fmt.Errorf("file info is nil"))
+	}
 	return f.Mode().IsRegular()
 }
 
