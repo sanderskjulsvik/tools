@@ -4,18 +4,11 @@ import (
 	"flag"
 	"fmt"
 	"os"
+
+	"github.com/sander-skjulsvik/tools/libs/progressbar"
 )
 
-// HandleCliInput will run flag.Parse,
-// this means that if you want to get more cli input you would need to add them before this call
-
-type CliInput struct {
-	OutputJson bool
-	Dir1       string
-	Dir2       string
-}
-
-func HandleCliInput() CliInput {
+func RunComparison(comparisonFunc ComparisonFunc) {
 	outputJson := flag.Bool("json", false, "If set to true Output as json")
 	dir1 := flag.String("dir1", "", "Path to 1st dir")
 	dir2 := flag.String("dir2", "", "Path to 2nd dir")
@@ -27,10 +20,13 @@ func HandleCliInput() CliInput {
 		os.Exit(1)
 	}
 
-	return CliInput{
-		OutputJson: *outputJson,
-		Dir1:       *dir1,
-		Dir2:       *dir2,
-	}
+	// Progress bar
+	pbs := progressbar.NewUiPCollection()
+	dupes := comparisonFunc(pbs, *dir1, *dir2)
 
+	if *outputJson {
+		fmt.Println(string(dupes.GetJSON()))
+	} else {
+		dupes.Present(false)
+	}
 }

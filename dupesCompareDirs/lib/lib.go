@@ -11,6 +11,8 @@ import (
 	"github.com/sander-skjulsvik/tools/libs/progressbar"
 )
 
+type ComparisonFunc func(progressBars progressbar.ProgressBarCollection, paths ...string) *common.Dupes
+
 // OnlyInboth returns dupes that is present in all directories
 func OnlyInAll(progressBars progressbar.ProgressBarCollection, paths ...string) *common.Dupes {
 	ds := runDupes(progressBars, paths...)
