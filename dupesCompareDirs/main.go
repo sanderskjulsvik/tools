@@ -5,43 +5,55 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/sander-skjulsvik/tools/dupes/lib/common"
 	comparedirs "github.com/sander-skjulsvik/tools/dupesCompareDirs/lib"
-	"github.com/sander-skjulsvik/tools/libs/progressbar"
+	dupescomparedirs "github.com/sander-skjulsvik/tools/dupesCompareDirs/lib"
 )
 
 func main() {
 	// Define command-line flags
-	mode := flag.String("mode", "all", "Mode to run in, modes: OnlyInboth, onlyInFirst, all")
+	compMode := flag.String("mode", "", "Mode to run in, modes: onlyInboth, onlyInFirst, all")
+	runnerMode := flag.String("runMode", "singleThread", "possible run modes: singleThread, producerConsumer and nThreads")
+	nThreads := flag.Int("nThreads", 0, "number of threads to use, only used witt runMode nThreads")
 	outputJson := flag.Bool("json", false, "If set to true Output as json")
+	withProgressBar := flag.Bool("withProgressBar", true, "If set to true display progress bar")
 	dir1 := flag.String("dir1", "", "Path to 1st dir")
 	dir2 := flag.String("dir2", "", "Path to 2nd dir")
 	flag.Parse()
 
+	errString := ""
+	if *dir1 == "" || *dir2 == "" {
+		errString = "Please provide `-dir1 <path>` and `-dir2 <path>`\n" + errString
+	}
+	if *compMode == "" {
+		errString = "Please provide `-mode <onlyInBoth|onlyInFirst|all>` flag\n" + errString
+	}
+	if *compMode == "nThreads" && *nThreads == 0 {
+		errString = "If `-mode nThreads` please provide `-nThreads <number of threads>\n" + errString
+	}
+	if errString != "" {
+		panic(fmt.Errorf("failed to start, error with cli flags\n%s", errString))
+	}
 	log.Printf("Comparing directories: %s and %s\n", *dir1, *dir2)
 
 	// Progress bar
-	pbs := progressbar.NewUiPCollection()
+	pbCollection := dupescomparedirs.SelectProgressBarCollection(*withProgressBar)
 
-	var newD *common.Dupes
-	switch *mode {
-	// Show dupes that is present in both directories
-	case "OnlyInboth":
-		newD = comparedirs.OnlyInAll(pbs, *dir1, *dir2)
-	// Show dupes that is only present in first
-	case "onlyInFirst":
-		newD = comparedirs.OnlyInFirst(pbs, *dir1, *dir2)
-		log.Println("Only in first")
-		log.Printf("Number of dupes: %d\n", len(newD.D))
-	case "all":
-		newD = comparedirs.All(pbs, *dir1, *dir2)
-	default:
-		panic(fmt.Errorf("unknown mode: %s, supported modes: OnlyInboth, onlyInFirst, all ", *mode))
-	}
+	// Comparison mode
+	comparatorFunc := comparedirs.SelectComparatorFunc(*compMode)
 
-	if *outputJson {
-		fmt.Println(string(newD.GetJSON()))
-	} else {
-		newD.Present(false)
+	// Runner
+	runFunc := dupescomparedirs.SelectRunnerFunction(*runnerMode, *nThreads)
+
+	comparator := comparedirs.NewComparator(
+		[]string{*dir1, *dir2}, runFunc, comparatorFunc, pbCollection,
+	)
+
+	dupes := comparator.Run()
+
+	switch *outputJson {
+	case true:
+		fmt.Printf(string(dupes.GetJSON()))
+	case false:
+		dupes.Present(false)
 	}
 }

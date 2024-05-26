@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	set "github.com/deckarep/golang-set/v2"
+	"github.com/sander-skjulsvik/tools/dupes/lib/common"
 	"github.com/sander-skjulsvik/tools/dupes/lib/singleThread"
 	"github.com/sander-skjulsvik/tools/dupes/lib/test"
 	comparedirs "github.com/sander-skjulsvik/tools/dupesCompareDirs/lib"
@@ -174,31 +175,39 @@ func setupD2(prefix string) test.Folder {
 	return folder
 }
 
-func setup(rootPath string) (progressbar.ProgressBarCollectionMoc, test.Folder, test.Folder) {
+func setup(rootPath string) (test.Folder, test.Folder) {
 	p1 := filepath.Join(rootPath, "d1")
 	p2 := filepath.Join(rootPath, "d2")
 	d1 := setupD1(p1)
 	d2 := setupD2(p2)
-	pbs := progressbar.NewMocProgressBarCollection()
-	return pbs, d1, d2
+	return d1, d2
 }
 
 func cleanUp(rootPath string) {
 	os.RemoveAll(rootPath)
 }
 
+func runComparison(rootPath string, compFunc comparedirs.ComparisonFunc) *common.Dupes {
+	comparator := comparedirs.NewComparator(
+		[]string{
+			filepath.Join(rootPath, "d1"),
+			filepath.Join(rootPath, "d2"),
+			filepath.Join(rootPath, "d2"),
+		},
+		singleThread.Run,
+		compFunc,
+		progressbar.ProgressBarCollectionMoc{},
+	)
+	return comparator.Run()
+}
+
 // OnlyInAll returns dupes that is present in All directories
 func TestOnlyInAll(t *testing.T) {
 	rootPath := "test_only_in_all"
-	pbCollection, d1, d2 := setup(rootPath)
+	d1, d2 := setup(rootPath)
 	defer cleanUp(rootPath)
+	calcDupes := runComparison(rootPath, comparedirs.OnlyInAll)
 
-	calcDupes := comparedirs.OnlyInAll(
-		pbCollection,
-		filepath.Join(rootPath, "d1"),
-		filepath.Join(rootPath, "d2"),
-		filepath.Join(rootPath, "d2"),
-	)
 	if len(calcDupes.D) != 2 {
 		t.Errorf("Expected 2 dupes, got %d", len(calcDupes.D))
 	}
@@ -209,13 +218,13 @@ func TestOnlyInAll(t *testing.T) {
 		calcHashes.Add(hash)
 	}
 
-	d1Dupes := singleThread.Run(filepath.Join(rootPath, "d1"))
+	d1Dupes := singleThread.Run(filepath.Join(rootPath, "d1"), progressbar.ProgressBarMoc{})
 	d1Hashes := set.NewSet([]string{}...)
 	for hash := range d1Dupes.D {
 		d1Hashes.Add(hash)
 	}
 
-	d2Dupes := singleThread.Run(filepath.Join(rootPath, "d2"))
+	d2Dupes := singleThread.Run(filepath.Join(rootPath, "d2"), progressbar.ProgressBarMoc{})
 	d2Hashes := set.NewSet([]string{}...)
 	for hash := range d2Dupes.D {
 		d2Hashes.Add(hash)
@@ -259,16 +268,11 @@ func TestOnlyInAll(t *testing.T) {
 // OnlyInFirst returns dupes that is only present in first directory
 func TestOnlyInFirst(t *testing.T) {
 	rootPath := "test_only_in_first"
-	pbCollection, d1, d2 := setup(rootPath)
+	d1, d2 := setup(rootPath)
 	d1FullPath := filepath.Join(rootPath, "d1")
 	d2FullPath := filepath.Join(rootPath, "d2")
 	defer cleanUp(rootPath)
-
-	calcDupes := comparedirs.OnlyInFirst(
-		pbCollection,
-		d1FullPath,
-		d2FullPath,
-	)
+	calcDupes := runComparison(rootPath, comparedirs.OnlyInFirst)
 
 	if len(calcDupes.D) != 1 {
 		t.Errorf("Expected 1 dupes, got %d", len(calcDupes.D))
@@ -276,8 +280,8 @@ func TestOnlyInFirst(t *testing.T) {
 
 	// Hashes
 	calcHashes := set.NewThreadUnsafeSetFromMapKeys(calcDupes.D)
-	d1Hashes := set.NewThreadUnsafeSetFromMapKeys(singleThread.Run(d1FullPath).D)
-	d2Hashes := set.NewThreadUnsafeSetFromMapKeys(singleThread.Run(d2FullPath).D)
+	d1Hashes := set.NewThreadUnsafeSetFromMapKeys(singleThread.Run(d1FullPath, progressbar.ProgressBarMoc{}).D)
+	d2Hashes := set.NewThreadUnsafeSetFromMapKeys(singleThread.Run(d2FullPath, progressbar.ProgressBarMoc{}).D)
 	expectedHashes := d1Hashes.Intersect(d1Hashes.Difference(d2Hashes))
 
 	if !calcHashes.Equal(expectedHashes) {
@@ -306,26 +310,20 @@ func TestOnlyInFirst(t *testing.T) {
 // All returns all dupes in both directories
 func TestAll(t *testing.T) {
 	rootPath := "test_ony_in_both"
-	pbCollection, d1, d2 := setup(rootPath)
+	d1, d2 := setup(rootPath)
 	d1FullPath := filepath.Join(rootPath, "d1")
 	d2FullPath := filepath.Join(rootPath, "d2")
 	defer cleanUp(rootPath)
 
-	calcDupes := comparedirs.All(
-		pbCollection,
-		d1FullPath,
-		d2FullPath,
-		// Running d2 again to check for duplicated entries in path
-		d2FullPath,
-	)
+	calcDupes := runComparison(rootPath, comparedirs.All)
 	if len(calcDupes.D) != 5 {
 		t.Errorf("Expected 2 dupes, got %d", len(calcDupes.D))
 	}
 
 	// Hashes
 	calcHashes := set.NewThreadUnsafeSetFromMapKeys(calcDupes.D)
-	d1Hashes := set.NewThreadUnsafeSetFromMapKeys(singleThread.Run(d1FullPath).D)
-	d2Hashes := set.NewThreadUnsafeSetFromMapKeys(singleThread.Run(d2FullPath).D)
+	d1Hashes := set.NewThreadUnsafeSetFromMapKeys(singleThread.Run(d1FullPath, progressbar.ProgressBarMoc{}).D)
+	d2Hashes := set.NewThreadUnsafeSetFromMapKeys(singleThread.Run(d2FullPath, progressbar.ProgressBarMoc{}).D)
 	expectedHashes := d1Hashes.Union(d2Hashes)
 	if !calcHashes.Equal(expectedHashes) {
 		t.Errorf("Expected %v, got %v", expectedHashes, calcHashes)

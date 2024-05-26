@@ -2,9 +2,12 @@ package progressbar
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"time"
 
 	uiprogress "github.com/gosuri/uiprogress"
+	"github.com/sander-skjulsvik/tools/libs/files"
 )
 
 // ///////////////////////////////////
@@ -13,6 +16,8 @@ import (
 
 type ProgressBar interface {
 	Add(x int)
+	// AddFileSize(path)
+	AddFileSize(string)
 	Add1()
 }
 
@@ -21,6 +26,8 @@ type ProgressBarCollection interface {
 	Stop()
 	// header, size
 	AddBar(string, int) ProgressBar
+	// path
+	AddDirectorySizeBar(string) ProgressBar
 }
 
 // ///////////////////////////////////
@@ -48,6 +55,10 @@ func (pbs ProgressBarCollectionMoc) AddBar(name string, total int) ProgressBar {
 	return ProgressBarMoc{}
 }
 
+func (pbs ProgressBarCollectionMoc) AddDirectorySizeBar(path string) ProgressBar {
+	return ProgressBarMoc{}
+}
+
 func (pbs ProgressBarCollectionMoc) Start() {
 }
 
@@ -58,6 +69,9 @@ func (pb ProgressBarMoc) Add(x int) {
 }
 
 func (pb ProgressBarMoc) Add1() {
+}
+
+func (pb ProgressBarMoc) AddFileSize(string) {
 }
 
 // ///////////////////////////////////
@@ -97,6 +111,15 @@ func (uiP UiPCollection) AddBar(name string, total int) ProgressBar {
 	return newBar
 }
 
+func (uiP UiPCollection) AddDirectorySizeBar(path string) ProgressBar {
+	log.Printf("Getting size of dir for bar: %s", path)
+	dirSize, err := files.GetSizeOfDirMb(path)
+	if err != nil {
+		panic(fmt.Errorf("unable to determine directory size: %w", err))
+	}
+	return uiP.AddBar(path, dirSize)
+}
+
 func (uiP UiPCollection) Start() {
 	uiP.progress.Start()
 }
@@ -113,4 +136,13 @@ func (uiP UiProgressBar) Add(x int) {
 
 func (uiP UiProgressBar) Add1() {
 	uiP.bar.Incr()
+}
+
+func (uiP UiProgressBar) AddFileSize(path string) {
+	// Get the fileinfo
+	fileInfo, err := os.Stat(path)
+	if err != nil {
+		panic(fmt.Errorf("addFileSize failed for: %s", path))
+	}
+	uiP.Add(int(fileInfo.Size()))
 }
