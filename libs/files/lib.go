@@ -2,11 +2,39 @@ package files
 
 import (
 	"fmt"
+	"io"
 	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
 )
+
+const BUFFERSIZE int = 65_536
+
+// cp from: https://opensource.com/article/18/6/copying-files-go
+func Copy(src, dst string) error {
+	source, err := os.Open(src)
+	destination, err := os.Open(dst)
+	if err != nil {
+		return err
+	}
+
+	buf := make([]byte, BUFFERSIZE)
+	for {
+		n, err := source.Read(buf)
+		if err != nil && err != io.EOF {
+			return err
+		}
+		if n == 0 {
+			break
+		}
+
+		if _, err := destination.Write(buf[:n]); err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 func GetNumberOfFiles(path string) (int, error) {
 	n := 0
