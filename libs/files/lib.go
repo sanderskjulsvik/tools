@@ -13,27 +13,25 @@ const BUFFERSIZE int = 65_536
 
 // cp from: https://opensource.com/article/18/6/copying-files-go
 func Copy(src, dst string) error {
-	source, err := os.Open(src)
-	destination, err := os.Open(dst)
+	in, err := os.Open(src)
 	if err != nil {
 		return err
 	}
-
-	buf := make([]byte, BUFFERSIZE)
-	for {
-		n, err := source.Read(buf)
-		if err != nil && err != io.EOF {
-			return err
-		}
-		if n == 0 {
-			break
-		}
-
-		if _, err := destination.Write(buf[:n]); err != nil {
-			return err
-		}
+	defer in.Close()
+	out, err := os.Create(dst)
+	if err != nil {
+		return err
 	}
-	return nil
+	defer func() {
+		cerr := out.Close()
+		if err == nil {
+			err = cerr
+		}
+	}()
+	if _, err = io.Copy(out, in); err != nil {
+		return err
+	}
+	return out.Sync()
 }
 
 func GetNumberOfFiles(path string) (int, error) {
@@ -83,4 +81,22 @@ func GetSizeOfDirMb(path string) (int, error) {
 		return 0, fmt.Errorf("unable find size of dir: %w", err)
 	}
 	return int(size / 1e6), nil
+}
+
+func CreateFile(path string, content []byte) error {
+	err := os.MkdirAll(filepath.Dir(path), os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("unable to create dir: %w", err)
+	}
+
+	file, err := os.Create(path)
+	if err != nil {
+		return fmt.Errorf("unable to create file: %w", err)
+	}
+	defer file.Close()
+	_, err = file.Write(content)
+	if err != nil {
+		return fmt.Errorf("unable to write to file: %w", err)
+	}
+	return nil
 }
