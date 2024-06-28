@@ -1,6 +1,7 @@
 package files
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"io/fs"
@@ -122,4 +123,44 @@ func CreateLargeFile(path string, size int64, mod int64) error {
 	}
 
 	return nil
+}
+
+func FilesEqual(src, dst string) (bool, error) {
+
+	srcStat, err := os.Stat(src)
+	if os.IsNotExist(err) {
+		return false, fmt.Errorf("Could not find src file")
+	}
+	if err != nil {
+		return false, fmt.Errorf("error with src: %s", err)
+	}
+	srcSize := srcStat.Size()
+
+	dstStat, err := os.Stat(dst)
+	if os.IsNotExist(err) {
+		return false, fmt.Errorf("Could not find dst file")
+	}
+	if err != nil {
+		return false, fmt.Errorf("error with dst: %s", err)
+	}
+	dstSize := dstStat.Size()
+
+	if dstSize != srcSize {
+		return false, nil
+	}
+
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return false, fmt.Errorf("Failed to open src file: %s, err: %v", src, err)
+	}
+	dstFile, err := os.Open(dst)
+	if err != nil {
+		return false, fmt.Errorf("Failed to open dst file: %s, err: %v", dst, err)
+	}
+	srcConent := make([]byte, srcSize)
+	srcFile.Read(srcConent)
+	dstContent := make([]byte, dstSize)
+	dstFile.Read(dstContent)
+
+	return bytes.Equal(srcConent, dstContent), nil
 }

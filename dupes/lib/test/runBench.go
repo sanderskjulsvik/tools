@@ -1,12 +1,13 @@
 package test
 
 import (
-	"crypto/rand"
 	"fmt"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/sander-skjulsvik/tools/dupes/lib/common"
+	sfiles "github.com/sander-skjulsvik/tools/libs/files"
 )
 
 func TestBench(path string, run common.Run, t *testing.T) {
@@ -25,32 +26,26 @@ func TestBenchLargeFiles() {}
 func TestBenchMixed() {}
 
 // doing single lvl, assuming deep files does not make a difference
-func generateFiles(path string, numberOfFiles, sizeOfFilesB, groupSize int) {
-	for i := 0; i < numberOfFiles; i++ {
-		createFileRandom(fmt.Sprint(i), sizeOfFilesB)
-		for range groupSize - 1 {
-			file.copy
-			i++
+func generateFiles(path string, numberOfFiles, size, uniqueFiles int) error {
+	i := 1
+	for ; i <= uniqueFiles; i++ {
+		err := sfiles.CreateLargeFile(
+			filepath.Join(path, fmt.Sprintf("%d.txt", i)),
+			int64(size),
+			int64(i+1),
+		)
+		if err != nil {
+			return err
 		}
 	}
-}
-
-func createFileRandom(path string, size int) {
-	chunkSize := size
-	if size < 1e4 {
-		chunkSize = 1e4
-	}
-	fp, err := os.Open(path)
-	check(err)
-	defer fp.Close()
-	written := 0
-	for written < size {
-		chunk := make([]byte, chunkSize)
-		rand.Read(chunk)
-		w, writeErr := fp.Write(chunk)
-		written += w
-		if writeErr != nil {
-			check(fmt.Errorf("Error writing to file: %v", writeErr))
+	for ; i <= numberOfFiles; i++ {
+		err := sfiles.Copy(
+			filepath.Join(path, fmt.Sprintf("%d.txt", i%uniqueFiles)),
+			filepath.Join(path, fmt.Sprintf("%d.txt", i)),
+		)
+		if err != nil {
+			return err
 		}
 	}
+	return nil
 }
