@@ -1,6 +1,7 @@
 package files
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"io/fs"
@@ -10,6 +11,7 @@ import (
 )
 
 const BUFFERSIZE int = 65_536
+const WRITE_BUFFER_SIZE = int64(1e6)
 
 // cp from: https://opensource.com/article/18/6/copying-files-go
 func Copy(src, dst string) error {
@@ -83,7 +85,8 @@ func GetSizeOfDirMb(path string) (int, error) {
 	return int(size / 1e6), nil
 }
 
-func CreateFile(path string, content []byte) error {
+func CreateLargeFile(path string, size int64) error {
+	// Setup File
 	err := os.MkdirAll(filepath.Dir(path), os.ModePerm)
 	if err != nil {
 		return fmt.Errorf("unable to create dir: %w", err)
@@ -94,9 +97,28 @@ func CreateFile(path string, content []byte) error {
 		return fmt.Errorf("unable to create file: %w", err)
 	}
 	defer file.Close()
-	_, err = file.Write(content)
-	if err != nil {
-		return fmt.Errorf("unable to write to file: %w", err)
-	}
+
+	// Prepp for writing
+	b := make([]byte, WRITE_BUFFER_SIZE)
+	reader := bytes.NewReader(b)
+	func(r io.Reader, w *os.File) {
+		iterations := size / WRITE_BUFFER_SIZE
+		log.Printf("createLargeFile: iterations: %d", iterations)
+		for range iterations {
+			// Make content to write
+			for i := int64(0); i < WRITE_BUFFER_SIZE; i++ {
+				b[i] = byte(i % 256)
+			}
+			// Write content
+			if err != nil {
+				if err == io.EOF {
+					return
+				}
+				continue
+			}
+			w.Write(b)
+		}
+	}(reader, file)
+
 	return nil
 }
