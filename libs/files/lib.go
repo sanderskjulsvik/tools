@@ -1,7 +1,6 @@
 package files
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"io/fs"
@@ -85,7 +84,7 @@ func GetSizeOfDirMb(path string) (int, error) {
 	return int(size / 1e6), nil
 }
 
-func CreateLargeFile(path string, size int64) error {
+func CreateLargeFile(path string, size int64, mod int64) error {
 	// Setup File
 	err := os.MkdirAll(filepath.Dir(path), os.ModePerm)
 	if err != nil {
@@ -98,27 +97,29 @@ func CreateLargeFile(path string, size int64) error {
 	}
 	defer file.Close()
 
+	writeBufferSzie := WRITE_BUFFER_SIZE
+	if WRITE_BUFFER_SIZE > size {
+		writeBufferSzie = size
+	}
+
 	// Prepp for writing
-	b := make([]byte, WRITE_BUFFER_SIZE)
-	reader := bytes.NewReader(b)
-	func(r io.Reader, w *os.File) {
-		iterations := size / WRITE_BUFFER_SIZE
-		log.Printf("createLargeFile: iterations: %d", iterations)
-		for range iterations {
-			// Make content to write
-			for i := int64(0); i < WRITE_BUFFER_SIZE; i++ {
-				b[i] = byte(i % 256)
-			}
-			// Write content
-			if err != nil {
-				if err == io.EOF {
-					return
-				}
-				continue
-			}
-			w.Write(b)
+	b := make([]byte, writeBufferSzie)
+	iterations := size / writeBufferSzie
+	log.Printf("createLargeFile: iterations: %d", iterations)
+	for range iterations {
+		// Make content to write
+		for i := int64(0); i < writeBufferSzie; i++ {
+			b[i] = byte(i % mod)
 		}
-	}(reader, file)
+		// Write content
+		if err != nil {
+			if err == io.EOF {
+				return nil
+			}
+			continue
+		}
+		file.Write(b)
+	}
 
 	return nil
 }
